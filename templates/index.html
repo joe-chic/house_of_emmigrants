@@ -1,9 +1,177 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        
-    </head>
-    <body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration History Explorer</title>
+    <style>
+        /* Reuse previous styles with additions */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-    </body>
+        nav {
+            background-color: #f8f9fa;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            margin-right: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .intro-text {
+            font-size: 1.2rem;
+            color: #34495e;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        .content-section {
+            margin: 3rem 0;
+            padding: 2rem 0;
+        }
+
+        .content-section p {
+            font-style: italic;
+            color: #7f8c8d;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        hr {
+            margin: 2rem 0;
+            border: 0;
+            border-top: 1px solid #eee;
+        }
+
+        .stories {
+            display: grid;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .story-heading {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-cta {
+            text-align: center;
+            padding: 3rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin: 4rem 0;
+        }
+
+        .dashboard-cta h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .cta-button:hover {
+            background-color: #0056b3;
+        }
+
+        .contact-info {
+            background-color: #f8f9fa;
+            padding: 2rem;
+            border-radius: 4px;
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        .address {
+            color: #2c3e50;
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+
+        .contact-details {
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">Data Exploration Dashboard</a>
+        <a href="#">About & Contact</a>
+        <a href="#">Login</a>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Tracing Journeys, Understanding History</h1>
+            <p class="intro-text">Explore how migration patterns have shaped societies across centuries. Visualize trends, compare historical insights, and uncover the forces driving human movement</p>
+        </div>
+
+        <div class="content-section">
+            <p>“Seq ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo...”</p>
+            
+            <hr>
+
+            <div class="stories">
+                <h3 class="story-heading">Description Story 1</h3>
+                <h3 class="story-heading">Description Story 2</h3>
+            </div>
+
+            <hr>
+
+            <div class="dashboard-cta">
+                <h2>Try out our dashboard</h2>
+                <a href="#" class="cta-button">Explore Data</a>
+            </div>
+        </div>
+
+        <div class="contact-info">
+            <div class="address">
+                House of Emigrants visiting address:<br>
+                Vilhelm Mobergs gata 4, 352 29 Växjö.
+            </div>
+            <div class="contact-details">
+                <strong>About the House of Emigrants</strong><br>
+                Contact information: +46 470-70 42 00<br>
+                <a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
