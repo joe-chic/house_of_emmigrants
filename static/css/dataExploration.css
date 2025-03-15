@@ -1,0 +1,94 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #DFC5B2;
+    margin: 0;
+    padding: 0;
+}
+header {
+    background: #F5E1D2;
+    padding: 15px;
+}
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+}
+nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+nav ul li a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+.hero {
+    text-align: center;
+    background: #F5E1D2;
+    padding: 30px 0;
+    font-size: 24px;
+    font-weight: bold;
+    color: #D84315;
+}
+.search {
+    text-align: center;
+    margin: 20px;
+}
+.search input {
+    width: 80%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.filters {
+    text-align: center;
+    margin: 20px;
+}
+.filters button {
+    background: #F5E1D2;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+.timeline {
+    text-align: center;
+    margin: 20px;
+}
+.chart, .map, .stories {
+    text-align: center;
+    margin: 20px;
+}
+.download {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background: #F5E1D2;
+    border: none;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.story {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #F5E1D2;
+    padding: 20px;
+    border-radius: 10px;
+}
+.story img {
+    width: 30%;
+    border-radius: 10px;
+    margin-right: 20px;
+}
+.text, .extracted-data {
+    width: 30%;
+    text-align: left;
+}
+footer {
+    background: #DFC5B2;
+    padding: 20px;
+    text-align: center;
+}

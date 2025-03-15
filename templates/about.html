@@ -3,111 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About & Contact - House of Emigrants</title>
+    <title>About & Contact</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        * {
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        nav {
-            background-color: #f8f9fa;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        nav a {
-            text-decoration: none;
+            background-color: #f4dfcd;
             color: #333;
-            margin-right: 2rem;
-            font-size: 0.9rem;
         }
-
-        nav a:hover {
-            color: #007bff;
+        header {
+            background-color: #f8e3d0;
+            padding: 10px 20px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        h1 {
-            margin-bottom: 2rem;
-            color: #2c3e50;
+        nav ul li {
+            display: inline;
+            margin-right: 20px;
         }
-
-        .section {
-            margin-bottom: 3rem;
-        }
-
-        .section h2 {
-            margin-bottom: 1rem;
-            color: #34495e;
-        }
-
-        .section p {
-            line-height: 1.6;
-            color: #7f8c8d;
-            margin-bottom: 1.5rem;
-            font-style: italic;
-        }
-
-        .contact-info {
-            background-color: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 4px;
-            margin-top: 1rem;
-        }
-
-        .address {
-            color: #2c3e50;
-            margin: 1rem 0;
+        nav ul li a {
+            text-decoration: none;
+            color: black;
             font-weight: bold;
         }
-
-        .contact-details {
-            color: #2c3e50;
-            line-height: 1.6;
+        .active {
+            color: #e44d26;
+        }
+        h1 {
+            text-align: center;
+            color: #e44d26;
+            font-size: 2em;
+            margin-top: 20px;
+        }
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        section {
+            margin-bottom: 30px;
+        }
+        h2 {
+            font-size: 1.2em;
+        }
+        footer {
+            background-color: #ead7c5;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .footer-content {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .footer-content div {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="#">Home</a>
-        <a href="#">Data Exploration dashboard</a>
-        <a href="#">About & contact</a>
-        <a href="#">Login</a>
-    </nav>
-
-    <div class="container">
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Data Exploration dashboard</a></li>
+                <li><a href="#" class="active">About & contact</a></li>
+                <li class="login"><a href="#">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
         <h1>About & Contact</h1>
-
-        <div class="section">
+        
+        <section>
             <h2>What do we want to accomplish?</h2>
-            <p>“Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo...”</p>
-        </div>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique.</p>
+        </section>
 
-        <div class="section">
+        <section>
             <h2>Contact information</h2>
-            <p>“Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo...”</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique.</p>
+        </section>
+    </main>
 
-            <div class="contact-info">
-                <div class="address">
-                    House of Emigrants visiting address:<br>
-                    Vilhelm Mobergs gata 4, 352 29 Växjö.
-                </div>
-
-                <div class="contact-details">
-                    <strong>About the House of Emigrants</strong><br>
-                    Contact information: +46 470-70 42 00<br>
-                    <a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a>
-                </div>
+    <footer>
+        <div class="footer-content">
+            <div>
+                <strong>House of Emigrants visiting address:</strong>
+                <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
+            </div>
+            <div>
+                <strong>About the House of Emigrants</strong>
+                <p>Contact information:</p>
+                <p>+46 470-70 42 00</p>
+                <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
             </div>
         </div>
-    </div>
+    </footer>
 </body>
 </html>

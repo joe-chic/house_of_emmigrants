@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Exploration Dashboard</title>
+    <link rel="stylesheet" href="../static/css/dataExploration.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html" class="active">Data Exploration Dashboard</a></li>
+                <li><a href="about.html">About & Contact</a></li>
+                <li class="login"><a href="#">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <h1>Data Exploration and Dashboard</h1>
+    </section>
+    
+    <section class="search">
+        <input type="text" placeholder="Search for specific topic">
+        <button>🔍</button>
+    </section>
+    
+    <section class="filters">
+        <button class="region">🌍 Region</button>
+        <button class="general">GENERAL</button>
+    </section>
+    
+    <section class="timeline">
+        <h2>Timeline</h2>
+        <input type="range" min="1801" max="2000" value="1900">
+    </section>
+    
+    <section class="chart">
+        <h2>Word frequency</h2>
+        <img src="word_frequency_chart.png" alt="Word Frequency Chart">
+    </section>
+    
+    <button class="download">⬇ Download</button>
+    
+    <section class="map">
+        <h2>Geographic Distribution</h2>
+        <img src="world_map.png" alt="Geographic Distribution Map">
+    </section>
+    
+    <section class="stories">
+        <h2>Stories and Demographic Information</h2>
+        <div class="story">
+            <img src="story_image.png" alt="Historical Image">
+            <div class="text">
+                <h3>Description Story 1</h3>
+                <p>"Sample historical story text..."</p>
+            </div>
+            <div class="extracted-data">
+                <h3>Extracted Data</h3>
+                <p><strong>Demography:</strong> Sample extracted demographic data.</p>
+                <p><strong>Travel records:</strong> Sample travel record insights.</p>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="footer-content">
+            <h2>Kulturparken Småland</h2>
+            <p>House of Emigrants, Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
+            <p>Contact: +46 470-70 42 00, <a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,63 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e3c7ab;
+}
+header {
+    background-color: #f4e0c2;
+    padding: 10px 20px;
+}
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+}
+nav ul li {
+    margin: 0 15px;
+}
+nav ul li a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+.hero {
+    background: url('hero.jpg') no-repeat center center/cover;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #f4e0c2;
+    font-size: 2rem;
+    font-weight: bold;
+}
+.introduction {
+    padding: 20px;
+    text-align: center;
+}
+.stories {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+}
+.story {
+    text-align: center;
+}
+.chart {
+    text-align: center;
+    padding: 20px;
+}
+button {
+    background-color: #f4b400;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+footer {
+    background-color: #f4e0c2;
+    padding: 20px;
+    text-align: center;
+}
