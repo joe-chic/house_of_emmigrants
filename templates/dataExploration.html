@@ -1,94 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Exploration Dashboard</title>
 
     <!--GENERAL STYLE-->
-    <link rel="stylesheet" href="../static/css/general.css">
+    <link rel="stylesheet" href="../static/css/general.css" />
     <!--SPECIFIC STYLE-->
-    <link rel="stylesheet" href="../static/css/dataExploration.css">
+    <link rel="stylesheet" href="../static/css/dataExploration.css" />
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+      crossorigin="anonymous"
+    />
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
-    crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
 
     <!--Montserrat-->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-</head>
-<body>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <ul class="nav-list"> <!--ADJUST THIS NAVBAR STYLE AND PLACEMENT -->
-                <li><a href="index.html">Home</a></li>
-                <li><a href="dataExploration.html" class="active">Data Exploration Dashboard</a></li>
-                <li><a href="about.html">About & Contact</a></li>
-            </ul>
-            <ul class="nav-list login"> 
-                <li><a href="login.html">Login</a></li>
-            </ul>
-        </nav>
+      <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+          <ul class="nav-list">
+            <li><a href="index.html">Home</a></li>
+            <li>
+              <a href="dataExploration.html" class="active"
+                >Data Exploration Dashboard</a
+              >
+            </li>
+            <li><a href="about.html">About & Contact</a></li>
+          </ul>
+          <ul class="nav-list login">
+            <li>
+              <a href="login.html"
+                ><i class="fas fa-user-circle me-2"></i>Login</a
+              >
+            </li>
+          </ul>
+        </div>
+      </nav>
     </header>
-    
-    <section class="hero">
+
+    <div class="container-fluid p-0">
+      <section class="hero">
         <h1>Data Exploration and Dashboard</h1>
-    </section>
-    
-    <section class="search">
-        <input type="text" placeholder="Search for specific topic">
-        <button>🔍</button>
-    </section>
-    
-    <section class="filters">
-        <button class="region">🌍 Region</button>
+        <p class="mt-2">Discover insights from historical emigration data</p>
+      </section>
+    </div>
+
+    <div class="container">
+      <section class="search">
+        <input type="text" placeholder="Search for specific topic" />
+        <button><i class="fas fa-search"></i></button>
+      </section>
+
+      <section class="filters">
+        <button class="region">
+          <i class="fas fa-globe-americas me-2"></i>Region
+        </button>
         <button class="general">GENERAL</button>
-    </section>
-    
-    <section class="timeline">
-        <h2>Timeline</h2>
-        <input type="range" min="1801" max="2000" value="1900">
-    </section>
-    
-    <section class="chart">
-        <h2>Word frequency</h2>
-        <img src="word_frequency_chart.png" alt="Word Frequency Chart">
-    </section>
-    
-    <button class="download">⬇ Download</button>
-    
-    <section class="map">
-        <h2>Geographic Distribution</h2>
-        <img src="world_map.png" alt="Geographic Distribution Map">
-    </section>
-    
-    <section class="stories">
-        <h2>Stories and Demographic Information</h2>
+        <button class="time-period">
+          <i class="fas fa-calendar-alt me-2"></i>Time Period
+        </button>
+      </section>
+
+      <section class="timeline">
+        <h2><i class="fas fa-history me-2"></i>Timeline</h2>
+        <div class="year-display mb-3">1900</div>
+        <input
+          type="range"
+          min="1801"
+          max="2000"
+          value="1900"
+          class="timeline-slider"
+        />
+        <div class="year-labels d-flex justify-content-between mt-2">
+          <span>1801</span>
+          <span>1900</span>
+          <span>2000</span>
+        </div>
+      </section>
+
+      <section class="chart">
+        <h2><i class="fas fa-chart-bar me-2"></i>Word frequency</h2>
+        <div class="chart-container">
+          <img
+            src="word_frequency_chart.png"
+            alt="Word Frequency Chart"
+            class="img-fluid"
+          />
+        </div>
+        <button class="download mt-4">
+          <i class="fas fa-download me-2"></i>Download Data
+        </button>
+      </section>
+
+      <section class="map">
+        <h2>
+          <i class="fas fa-map-marked-alt me-2"></i>Geographic Distribution
+        </h2>
+        <div class="map-container">
+          <img
+            src="world_map.png"
+            alt="Geographic Distribution Map"
+            class="img-fluid"
+          />
+        </div>
+      </section>
+
+      <section class="stories">
+        <h2>
+          <i class="fas fa-book-open me-2"></i>Stories and Demographic
+          Information
+        </h2>
         <div class="story">
-            <img src="story_image.png" alt="Historical Image">
-            <div class="text">
-                <h3>Description Story 1</h3>
-                <p>"Sample historical story text..."</p>
-            </div>
-            <div class="extracted-data">
-                <h3>Extracted Data</h3>
-                <p><strong>Demography:</strong> Sample extracted demographic data.</p>
-                <p><strong>Travel records:</strong> Sample travel record insights.</p>
-            </div>
+          <img
+            src="story_image.png"
+            alt="Historical Image"
+            class="story-image"
+          />
+          <div class="text">
+            <h3>
+              <i class="fas fa-quote-left me-2 text-muted"></i>Description Story
+              1
+            </h3>
+            <p>"Sample historical story text..."</p>
+            <p class="text-muted">
+              <small><i class="fas fa-calendar me-1"></i> Circa 1890</small>
+            </p>
+          </div>
+          <div class="extracted-data">
+            <h3><i class="fas fa-database me-2"></i>Extracted Data</h3>
+            <p>
+              <strong><i class="fas fa-users me-1"></i> Demography:</strong>
+              Sample extracted demographic data.
+            </p>
+            <p>
+              <strong><i class="fas fa-ship me-1"></i> Travel records:</strong>
+              Sample travel record insights.
+            </p>
+          </div>
         </div>
-    </section>
-    
+
+        <div class="text-center mt-4">
+          <button class="btn btn-outline-secondary">
+            <i class="fas fa-plus-circle me-2"></i>Load More Stories
+          </button>
+        </div>
+      </section>
+    </div>
+
     <footer>
+      <div class="container">
         <div class="footer-content">
+          <div>
             <h2>Kulturparken Småland</h2>
-            <p>House of Emigrants, Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
-            <p>Contact: +46 470-70 42 00, <a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
+            <p>
+              <i class="fas fa-map-marker-alt me-2"></i>House of Emigrants,
+              Vilhelm Mobergs gata 4, 352 29 Växjö.
+            </p>
+          </div>
+          <div>
+            <p><i class="fas fa-phone me-2"></i>+46 470-70 42 00</p>
+            <p>
+              <i class="fas fa-envelope me-2"></i
+              ><a href="mailto:information@kulturparkensmaland.se"
+                >information@kulturparkensmaland.se</a
+              >
+            </p>
+          </div>
+          <div class="social-icons">
+            <a href="#" class="me-3"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="me-3"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="me-3"><i class="fab fa-instagram"></i></a>
+          </div>
         </div>
+        <div class="text-center mt-3">
+          <small>&copy; 2023 House of Emigrants. All rights reserved.</small>
+        </div>
+      </div>
     </footer>
-</body>
+  </body>
 </html>
