@@ -4,18 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Upload Interface</title>
+    <!--GENERAL STYLE-->
+    <link rel="stylesheet" href="../static/css/general.css">
+    <!--SPECIFIC STYLE-->
     <link rel="stylesheet" href="../static/css/uploadTool.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+    crossorigin="anonymous"></script>
+
+    <!--Montserrat-->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <!--Inter-->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <header>
-        <nav>
-            <ul>
+    <header style="border-bottom: 1px solid #333;">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <ul class="nav-list"> <!--ADJUST THIS NAVBAR STYLE AND PLACEMENT -->
                 <li><a href="index.html">Home</a></li>
-                <li><a href="dataExploration.html">Data Exploration dashboard</a></li>
-                <li><a href="about.html">About & contact</a></li>
+                <li><a href="dataExploration.html">Data Exploration Dashboard</a></li>
+                <li><a href="about.html">About & Contact</a></li>
             </ul>
-            <div class="user-icon">👤</div>
+            <ul class="nav-list login"> 
+                <a style="text-decoration:none;" href="uploadTool.html"><div class="user-icon">👤</div></a>
+            </ul>
         </nav>
     </header>
 
@@ -26,13 +44,13 @@
             <div class="upload-box">
                 <h3>Text files</h3>
                 <p>Browse your local files</p>
-                <button>Upload</button>
+                <button class="uploadButton">Upload</button>
             </div>
             
             <div class="upload-box">
                 <h3>Multimedia files</h3>
                 <p>Browse your local files</p>
-                <button>Upload</button>
+                <button class="uploadButton">Upload</button>
             </div>
         </section>
 
@@ -44,11 +62,12 @@
                     <th>Link Title</th>
                 </tr>
             </table>
+            <hr>
         </section>
 
         <div class="form-buttons">
-            <button class="submit">Submit</button>
-            <button class="cancel">Cancel</button>
+            <button class="submitButton">Submit</button>
+            <button class="cancelButton">Cancel</button>
         </div>
 
         <section class="file-management">
@@ -64,24 +83,24 @@
                     <div class="file-preview"></div>
                     <h4>File 1</h4>
                     <p>Body text for whatever you'd like to say.</p>
-                    <button class="delete">Delete</button>
-                    <button class="change">Change</button>
+                    <button class="deleteButton">Delete</button>
+                    <button class="changeButton">Change</button>
                 </div>
 
                 <div class="file-card">
                     <div class="file-preview"></div>
                     <h4>File 2</h4>
                     <p>Body text for whatever you'd like to say.</p>
-                    <button class="delete">Delete</button>
-                    <button class="change">Change</button>
+                    <button class="deleteButton">Delete</button>
+                    <button class="changeButton">Change</button>
                 </div>
 
                 <div class="file-card">
                     <div class="file-preview"></div>
                     <h4>File 3</h4>
                     <p>Body text for whatever you'd like to say.</p>
-                    <button class="delete">Delete</button>
-                    <button class="change">Change</button>
+                    <button class="deleteButton">Delete</button>
+                    <button class="changeButton">Change</button>
                 </div>
             </div>
         </section>
@@ -89,18 +108,19 @@
 
     <footer>
         <div class="footer-content">
-            <div class="logo">KULTURPARKEN SMÅLAND</div>
-            <div class="address">
-                <h4>House of Emigrants visiting address:</h4>
+            <div class="logo"><img src="../static/images/Kulturparken.png"></div>
+            <div>
+                <p>House of Emigrants visiting address:</p>
                 <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
             </div>
-            <div class="contact">
-                <h4>About the House of Emigrants</h4>
-                <p>Contact information: +46 470-70 42 00</p>
+            <div>
+                <p>About the House of Emigrants</p>
+                <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
+                <p>Contact information:</p>
+                <p>+46 470-70 42 00</p>
                 <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
             </div>
         </div>
     </footer>
-
 </body>
 </html>
