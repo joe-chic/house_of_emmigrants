@@ -40,14 +40,14 @@
   <body>
     <header>
       <nav class="navbar navbar-expand-lg navbar-light">
-          <ul class="nav-list"> <!--ADJUST THIS NAVBAR STYLE AND PLACEMENT -->
-              <li><a href="index.html">Home</a></li>
-              <li><a href="dataExploration.html" class="active">Data Exploration Dashboard</a></li>
-              <li><a href="about.html">About & Contact</a></li>
-          </ul>
-          <ul class="nav-list login"> 
-              <li><a href="login.html">Login</a></li>
-          </ul>
+        <ul class="nav-list"> <!--ADJUST THIS NAVBAR STYLE AND PLACEMENT -->
+            <li><a href="/">Home</a></li>
+            <li><a href="/dataExploration" class="active">Data Exploration Dashboard</a></li>
+            <li><a href="/about">About & Contact</a></li>
+        </ul>
+        <ul class="nav-list login"> 
+            <li><a href="/login">Login</a></li>
+        </ul>
       </nav>
   </header>
 
@@ -75,51 +75,23 @@
       </section>
 
       <section class="timeline">
-        <h2><i class="fas fa-history me-2"></i>Timeline</h2>
-        <div class="year-display mb-3">1900</div>
-        <input
-          type="range"
-          min="1801"
-          max="2000"
-          value="1900"
-          class="timeline-slider"
-        />
-        <div class="year-labels d-flex justify-content-between mt-2">
-          <span>1801</span>
-          <span>1900</span>
-          <span>2000</span>
-        </div>
-      </section>
+        <h2>Timeline</h2>
+        <input type="range" min="1801" max="2000" value="1900">
+    </section>
+    
+    <section class="chart">
+        <h2>Word frequency</h2>
+        <img src="word_frequency_chart.png" alt="Word Frequency Chart">
+    </section>
 
-      <section class="chart">
-        <h2><i class="fas fa-chart-bar me-2"></i>Word frequency</h2>
-        <div class="chart-container">
-          <img
-            src="word_frequency_chart.png"
-            alt="Word Frequency Chart"
-            class="img-fluid"
-          />
-        </div>
-        <button class="download mt-4">
-          <i class="fas fa-download me-2"></i>Download Data
-        </button>
-      </section>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
 
-      <section class="map">
-        <h2>
-          <i class="fas fa-map-marked-alt me-2"></i>Geographic Distribution
-        </h2>
-        <div class="map-container">
-          <img
-            src="world_map.png"
-            alt="Geographic Distribution Map"
-            class="img-fluid"
-          />
-        </div>
-        <button class="download mt-4">
-          <i class="fas fa-download me-2"></i>Download Data
-        </button>
-      </section>
+    <button class="download">⬇ Download</button>
+    
+    <section class="map">
+        <h2>Geographic Distribution</h2>
+        <img src="world_map.png" alt="Geographic Distribution Map">
+    </section>
 
       <section class="stories">
         <h2>
