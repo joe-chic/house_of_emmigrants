@@ -1,37 +1,4 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #dcc2ad;
-    margin: 0;
-    padding: 0;
-}
 
-header {
-    background-color: #c4a78a;
-    padding: 10px;
-}
-
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-}
-
-nav ul li {
-    margin-right: 20px;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: black;
-    font-weight: bold;
-}
 
 .user-icon {
     font-size: 20px;
@@ -40,7 +7,11 @@ nav ul li a {
 
 main {
     width: 80%;
-    margin: auto;
+    margin: 40px auto 80px auto;
+}
+
+main h2{
+    margin-bottom: 40px;
 }
 
 h2, h3 {
@@ -85,23 +56,31 @@ th, td {
     border-bottom: 1px solid black;
 }
 
+.attached-files hr{
+    margin: 0 0 10px 0 !important;
+}
+
 .form-buttons {
     margin: 20px 0;
 }
 
-.submit, .cancel {
-    padding: 10px 20px;
+.submitButton, .cancelButton {
+    padding: 8px 20px;
+    font-family: 'Inter', sans-serif;
     border: none;
     cursor: pointer;
+
+    background-color: #E3E3E3;
+    border: 1px solid black;
 }
 
-.submit {
-    background-color: black;
-    color: white;
+.submitButton {
+    background-color: #434343;
+    color: #E3E3E3;
 }
 
-.cancel {
-    background-color: white;
+.cancelButton {
+    background-color: #E3E3E3;
     border: 1px solid black;
 }
 
@@ -109,30 +88,71 @@ th, td {
     margin-top: 40px;
 }
 
-.search-bar {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
 .search-bar input {
+    background-color: #EAD3C2;
     width: 100%;
     padding: 10px;
     border: 1px solid black;
-    border-radius: 5px;
+    border-radius: 20px;
+}
+
+.search-bar input {
+    background-image: url("../images/search_icon.png"); /* Replace with your icon path */
+    background-repeat: no-repeat;
+    background-position: 10px center; /* Position the icon */
+    background-size: 16px 16px; /* Adjust icon size */
+    padding-left: 35px; /* Add padding to make space for the icon */
+    width: 100%; /* Adjust as needed */
+    height: 55px; /* Optional: Adjust height for a better look */
+    border: 1px solid #ccc; /* Optional border */
+    border-radius: 50px; /* Rounded corners */
+    outline: none;
+    margin-bottom: 20px;
+}
+
+.search-bar i {
+    color: black;
+    margin-right: 8px;
+}
+
+.view-button {
+    background-color: #EAD3C2;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
 }
 
 .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.file-list {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
 }
 
 .file-card {
-    background-color: #f1d5bb;
+    background: #EAD3C2;
     padding: 15px;
     border-radius: 8px;
-    text-align: center;
-    width: 30%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.file-list .file-card {
+    display: flex; /* Keep flex layout for consistent alignment */
+    flex-direction: row; /* Optional: Align elements in a row */
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 20px; /* Add spacing between items */
+    border-bottom: 1px solid #ccc; /* Optional: Add separator */
 }
 
 .file-preview {
@@ -143,24 +163,23 @@ th, td {
     margin-bottom: 10px;
 }
 
-.delete, .change {
-    background-color: black;
+.deleteButton {
+    background-color: #434343;
     color: white;
     border: none;
     padding: 5px 10px;
     margin: 5px;
     cursor: pointer;
+    border: 1px solid black;
 }
 
-footer {
-    background-color: #c4a78a;
-    padding: 20px;
-    margin-top: 40px;
-}
-
-.footer-content {
-    display: flex;
-    justify-content: space-between;
+.changeButton{
+    background-color: #E3E3E3;
+    border: none;
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+    border: 1px solid black;
 }
 
 .logo {
@@ -171,3 +190,18 @@ footer {
 a {
     color: black;
 }
+
+.upload-section button{
+    background-color: #434343;
+    color:#E3E3E3;
+    border-radius: 10px;
+}
+
+.form-buttons button{
+    border-radius: 10px;
+}
+
+.file-card button{
+    border-radius: 10px;
+}
+

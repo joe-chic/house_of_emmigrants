@@ -3,8 +3,9 @@ body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #D7C0AE;
+    background-color: #D7C0AE !important;
 }
+
 header {
     background-color: #D7C0AE;
     padding: 15px 20px;
