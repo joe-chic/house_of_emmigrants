@@ -144,6 +144,14 @@ th, td {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.file-list .file-card {
+    display: flex; /* Keep flex layout for consistent alignment */
+    flex-direction: row; /* Optional: Align elements in a row */
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 20px; /* Add spacing between items */
+    border-bottom: 1px solid #ccc; /* Optional: Add separator */
+}
 
 .file-preview {
     width: 100%;

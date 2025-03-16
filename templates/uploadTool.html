@@ -115,21 +115,21 @@
             
             <script>
             document.getElementById('toggleView').addEventListener('click', function() {
-                let fileContainer = document.getElementById('fileContainer');
-                let icon = this.querySelector('i');
-            
-                if (fileContainer.classList.contains('file-grid')) {
-                    fileContainer.classList.remove('file-grid');
-                    fileContainer.classList.add('file-list');
-                    icon.classList.remove('fa-th-large');
-                    icon.classList.add('fa-list');
-                } else {
-                    fileContainer.classList.remove('file-list');
-                    fileContainer.classList.add('file-grid');
-                    icon.classList.remove('fa-list');
-                    icon.classList.add('fa-th-large');
-                }
-            });
+            let fileContainer = document.getElementById('fileContainer');
+            let fileCards = document.querySelectorAll('.file-card h4');
+
+            if (fileContainer.classList.contains('file-grid')) {
+                // Switch to list view
+                fileContainer.classList.remove('file-grid');
+                fileContainer.classList.add('file-list');
+                fileCards.forEach(h4 => h4.style.margin = "0"); // Increase space in list view
+            } else {
+                // Switch back to tiles (grid) view
+                fileContainer.classList.remove('file-list');
+                fileContainer.classList.add('file-grid');
+                fileCards.forEach(h4 => h4.style.margin = "0 30px 0 30px 0") // Reset to original spacing
+            }
+        });
             </script>
             
         </section>
