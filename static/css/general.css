@@ -1,3 +1,48 @@
+.navbar {
+    padding: 10px 20px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.nav-list{
+    list-style: none; 
+    display:flex;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-list li {
+    margin: 0 15px;
+}
+
+.active{
+    color:#E1390C !important;
+}
+
+.navbar .nav-list a:hover {
+    color: #ff5733 !important; /* Change this to your desired color */
+}
+
+.nav-list a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+
+/* Responsive Navbar */
+@media (max-width: 991px) {
+    .navbar-collapse {
+        padding: 10px;
+    }
+    .nav-list {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    .nav-list li {
+        margin: 10px 0;
+    }
+}
+
 /*HEADER AND CSS*/
 body {
     font-family: 'Inter', sans-serif;
@@ -17,29 +62,6 @@ nav ul {
     justify-content: space-between;
     padding: 0;
 }
-nav ul li {
-    margin: 0 15px;
-}
-nav ul li a {
-    text-decoration: none;
-    color: black;
-    font-weight: bold;
-}
-
-.navbar{
-    font-family: 'Montserrat', sans-serif;
-}
-
-.nav-list{
-    list-style: none; 
-    display:flex;
-    padding: 0;
-    margin: 0;
-}
-
-.navbar .nav-list a:hover {
-    color: #ff5733 !important; /* Change this to your desired color */
-}
 
 .nav-list li {
     margin-right: 15px;
@@ -47,10 +69,6 @@ nav ul li a {
 
 .login {
     margin-left: auto;
-}
-
-.active{
-    color:#E1390C;
 }
 
 footer {

@@ -26,16 +26,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-    <header style="border-bottom: 1px solid #333;">
+    <header>
         <nav class="navbar navbar-expand-lg navbar-light">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/dataExploration">Data Exploration dashboard</a></li>
-                <li><a href="/about">About & contact</a></li>
-            </ul>
-            <ul class="nav-list login"> 
-                <a style="text-decoration:none;" href="/uploadTool"><div class="user-icon">👤</div></a>
-            </ul>
+            <div class="container-fluid">
+                <!-- Hamburger Button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+    
+                <!-- Navigation Items -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="nav-list navbar-nav me-auto"> 
+                        <li class="nav-item"><a href="/" class="nav-link active">Home</a></li>
+                        <li class="nav-item"><a href="/dataExploration" class="nav-link">Data Exploration Dashboard</a></li>
+                        <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
+                    </ul>
+                    <ul class="nav-list navbar-nav login">
+                        <li class="nav-item"><a style="text-decoration:none;" href="/uploadTool"><div class="user-icon">👤</div></a></li>
+                    </ul>
+                </div>
+            </div>
         </nav>
     </header>
 
