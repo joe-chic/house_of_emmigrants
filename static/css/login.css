@@ -1,11 +1,12 @@
 .login-container {
-    width: 300px;
+    width: 350px;
     margin: 100px auto;
-    padding: 20px;
+    padding: 30px 50px;
     background: #D7C0AE;
     border-radius: 10px;
     text-align: center;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid black;
 }
 .login-container h1 {
     font-size: 1.5em;
@@ -16,7 +17,8 @@
     padding: 10px;
     margin: 10px auto;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 10px;
+    background-color: #EAD3C2;
 }
 .login-container a {
     font-size: 0.9em;
@@ -29,11 +31,10 @@
 .login-container button {
     background-color: #333;
     color: white;
-    padding: 10px 15px;
+    padding: 10px 70px;
     border: none;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
-    width: 100%;
     margin-top: 10px;
 }
 .login-container button:hover {
