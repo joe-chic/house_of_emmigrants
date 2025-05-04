@@ -1,6 +1,7 @@
 .navbar {
     padding: 10px 20px;
     font-family: 'Montserrat', sans-serif;
+    background-color: #F4EADC; /* marfil claro */
 }
 
 .nav-list{
@@ -15,16 +16,16 @@
 }
 
 .active{
-    color:#E1390C !important;
+    color:#A75D3C !important; /* siena quemado */
 }
 
 .navbar .nav-list a:hover {
-    color: #ff5733 !important; /* Change this to your desired color */
+    color: #C18F34 !important; /* ocre dorado */
 }
 
 .nav-list a {
     text-decoration: none;
-    color: black;
+    color: #4A4A4A; /* gris oscuro */
     font-weight: bold;
 }
 
@@ -43,16 +44,16 @@
     }
 }
 
-/*HEADER AND CSS*/
+/* HEADER AND CSS */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #D7C0AE !important;
+    background-color: #F4EADC !important; /* marfil claro */
 }
 
 header {
-    background-color: #D7C0AE;
+    background-color: #F4EADC; /* marfil claro */
     padding: 15px 20px;
 }
 
@@ -72,7 +73,7 @@ nav ul {
 }
 
 footer {
-    background-color: #EAD3C2;
+    background-color: #EAD3C2; /* suavizado de marfil claro */
     padding: 20px;
     text-align: center;
     font-size: 0.9em;
@@ -92,10 +93,11 @@ footer {
     padding:30px 0 30px 0;
     font-weight: bold;
 }
+
 .footer-content div {
     margin-bottom: 10px;
 }
 
 .footer-content a{
-    color:#1E1E1E;
+    color:#66705C; /* verde musgo */
 }

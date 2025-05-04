@@ -29,121 +29,155 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container-fluid">
-                <!-- Hamburger Button -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-    
-                <!-- Navigation Items -->
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="nav-list navbar-nav me-auto"> 
-                        <li class="nav-item"><a href="/" class="nav-link active">Home</a></li>
+                    <ul class="nav-list navbar-nav me-auto">
+                        <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item"><a href="/uploadTool" class="nav-link active">Upload Files</a></li>
+                        {% endif %}
                         <li class="nav-item"><a href="/dataExploration" class="nav-link">Data Exploration Dashboard</a></li>
                         <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
                     </ul>
                     <ul class="nav-list navbar-nav login">
-                        <li class="nav-item"><a style="text-decoration:none;" href="/uploadTool"><div class="user-icon">👤</div></a></li>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                    <div class="user-icon">👤</div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item"><a href="/login" class="nav-link active">Login</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
 
-    <main>
-        <h2>Uploading new data</h2>
+    <div class="upload-background">
+        <h1>Uploading new data</h1>
+    </div>
 
+    <main class="container my-4">
         <section class="upload-section">
             <div class="upload-box">
                 <h3>Text files</h3>
                 <p>Browse your local files</p>
-                <button class="uploadButton">Upload</button>
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="type" value="text">
+                    <div class="mb-3">
+                        <input type="file" name="files" multiple required class="form-control">
+                    </div>
+                    <div>
+                        <button type="submit" class="uploadButton d-block">Upload Text Files</button>
+                    </div>
+                </form>
             </div>
-            
+
             <div class="upload-box">
                 <h3>Multimedia files</h3>
                 <p>Browse your local files</p>
-                <button class="uploadButton">Upload</button>
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="type" value="image">
+                    <div class="mb-3">
+                        <input type="file" name="files" multiple required class="form-control">
+                    </div>
+                    <div>
+                        <button type="submit" class="uploadButton d-block">Upload Images</button>
+                    </div>
+                </form>
             </div>
         </section>
-
-        <section class="attached-files">
-            <h3>Attached files</h3>
-            <table>
-                <tr>
-                    <th>File Name</th>
-                    <th>Link Title</th>
-                </tr>
-            </table>
-            <hr>
-        </section>
-
-        <div class="form-buttons">
-            <button class="submitButton">Submit</button>
-            <button class="cancelButton">Cancel</button>
-        </div>
 
         <section class="file-management">
             <h3>Select current files</h3>
             <p>Manage current files for deleting or changing them.</p>
-
-            <!-- Botón de alternar vista -->
-            <div class="search-bar">
-                <input type="text" placeholder="Search">
+          
+            <!-- Search bar -->
+            <div class="search-bar mb-3">
+              <input id="searchInput" type="text" placeholder="Search" class="form-control">
             </div>
-            
-            <!-- Botón de alternar vista -->
-            <button id="toggleView" class="view-button">
-                <i class="fa-solid fa-th-large"></i> View
+          
+            <!-- Toggle view button -->
+            <button id="toggleView" class="view-button mb-3 btn btn-outline-secondary">
+              <i id="viewIcon" class="fa-solid fa-th-large"></i> View
             </button>
-            
-            <!-- Contenedor de archivos -->
-            <div id="fileContainer" class="file-grid">
+          
+            <div id="fileContainer" class="file-grid mt-4">
+              {% for file in files %}
                 <div class="file-card">
-                    <div class="file-preview"></div>
-                    <h4>File 1</h4>
-                    <p>Body text for whatever you'd like to say.</p>
-                    <button class="deleteButton">Delete</button>
-                    <button class="changeButton">Change</button>
+                  <div class="file-preview mb-2">
+                    {% if file.type == 'image' %}
+                      <img src="{{ url_for('serve_multimedia', filename=file.path) }}"
+                           alt="{{ file.name }}"
+                           class="img-fluid">
+                    {% else %}
+                      <i class="fa fa-file-alt fa-3x"></i>
+                    {% endif %}
+                  </div>
+                  <div class="file-info mb-2">
+                    <h4 class="file-name">{{ file.name }}</h4>
+                    <p>{{ file.type|capitalize }}</p>
+                  </div>
+                  <div class="file-actions">
+                    <!-- DELETE form -->
+                    <form action="{{ url_for('delete_file') }}" method="post" class="d-inline">
+                      <input type="hidden" name="file_path" value="{{ file.path }}">
+                      <button type="submit" class="btn btn-sm btn-danger deleteButton">
+                        Delete
+                      </button>
+                    </form>
+          
+                    <!-- REPLACE form -->
+                    <form action="{{ url_for('replace_file') }}" method="post"
+                          enctype="multipart/form-data" class="d-inline">
+                      <input type="hidden" name="orig_path" value="{{ file.path }}">
+                      <input type="file" name="new_file" required
+                             class="form-control form-control-sm d-inline-block"
+                             style="width: auto;">
+                      <button type="submit" class="btn btn-sm btn-secondary changeButton">
+                        Change
+                      </button>
+                    </form>
+                  </div>
                 </div>
-            
-                <div class="file-card">
-                    <div class="file-preview"></div>
-                    <h4>File 2</h4>
-                    <p>Body text for whatever you'd like to say.</p>
-                    <button class="deleteButton">Delete</button>
-                    <button class="changeButton">Change</button>
-                </div>
-            
-                <div class="file-card">
-                    <div class="file-preview"></div>
-                    <h4>File 3</h4>
-                    <p>Body text for whatever you'd like to say.</p>
-                    <button class="deleteButton">Delete</button>
-                    <button class="changeButton">Change</button>
-                </div>
+              {% else %}
+                <p>No files uploaded yet.</p>
+              {% endfor %}
             </div>
-            
+          
             <script>
-            document.getElementById('toggleView').addEventListener('click', function() {
-            let fileContainer = document.getElementById('fileContainer');
-            let fileCards = document.querySelectorAll('.file-card h4');
-
-            if (fileContainer.classList.contains('file-grid')) {
-                // Switch to list view
-                fileContainer.classList.remove('file-grid');
-                fileContainer.classList.add('file-list');
-                fileCards.forEach(h4 => h4.style.margin = "0"); // Increase space in list view
-            } else {
-                // Switch back to tiles (grid) view
-                fileContainer.classList.remove('file-list');
-                fileContainer.classList.add('file-grid');
-                fileCards.forEach(h4 => h4.style.margin = "0 30px 0 30px 0") // Reset to original spacing
-            }
-        });
+              // Search filter (unchanged)
+              document.getElementById('searchInput').addEventListener('input', function() {
+                const filter = this.value.toLowerCase();
+                document.querySelectorAll('#fileContainer .file-card').forEach(card => {
+                  const title = card.querySelector('.file-name').textContent.toLowerCase();
+                  card.style.display = title.includes(filter) ? '' : 'none';
+                });
+              });
+          
+              // Toggle view (unchanged)
+              document.getElementById('toggleView').addEventListener('click', function() {
+                let fileContainer = document.getElementById('fileContainer');
+                let viewIcon = document.getElementById('viewIcon');
+                if (fileContainer.classList.contains('file-grid')) {
+                  fileContainer.classList.replace('file-grid','file-list');
+                  viewIcon.classList.replace('fa-th-large','fa-list');
+                } else {
+                  fileContainer.classList.replace('file-list','file-grid');
+                  viewIcon.classList.replace('fa-list','fa-th-large');
+                }
+              });
             </script>
-            
-        </section>
+          </section>
+          
     </main>
 
     <footer>

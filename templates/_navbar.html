@@ -1,0 +1,35 @@
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+        <!-- Hamburger Button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navigation Items -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="nav-list navbar-nav me-auto">
+                <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                {% if session.get('admin_id') %}
+                    <li class="nav-item"><a href="/uploadTool" class="nav-link active">Upload Files</a></li>
+                {% endif %}
+                <li class="nav-item"><a href="/dataExploration" class="nav-link">Data Exploration Dashboard</a></li>
+                <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
+            </ul>
+            <ul class="nav-list navbar-nav login">
+                {% if session.get('admin_id') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                            <div class="user-icon">👤</div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                            <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a href="/login" class="nav-link active">Login</a></li>
+                {% endif %}
+            </ul>                    
+        </div>
+    </div>
+</nav>

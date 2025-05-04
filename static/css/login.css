@@ -1,35 +1,42 @@
+/* Paleta "Tierra y memoria" aplicada a login.css */
+
+.login-background{
+    background: linear-gradient(135deg, #F4EADC, #EAD3C2); 
+}
+
 .login-container {
     width: 350px;
     margin: 100px auto;
     padding: 30px 50px;
-    background: #D7C0AE;
+    background: #EAD3C2; /* marfil claro  */
     border-radius: 10px;
     text-align: center;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    border: 1px solid black;
+    border: 1px solid #A75D3C; /* siena quemado */
 }
 .login-container h1 {
     font-size: 1.5em;
     margin-bottom: 20px;
+    color: #A75D3C; /* siena quemado */
 }
 .login-container input {
     width: 100%;
     padding: 10px;
     margin: 10px auto;
-    border: 1px solid #ccc;
+    border: 1px solid #66705C; /* verde musgo */
     border-radius: 10px;
-    background-color: #EAD3C2;
+    background-color: #F4EADC; /* suave */
 }
 .login-container a {
     font-size: 0.9em;
-    color: #333;
+    color: #4A4A4A; /* gris oscuro */
     text-decoration: none;
 }
 .login-container a:hover {
     text-decoration: underline;
 }
 .login-container button {
-    background-color: #333;
+    background-color: #A75D3C; /* siena quemado */
     color: white;
     padding: 10px 70px;
     border: none;
@@ -38,5 +45,5 @@
     margin-top: 10px;
 }
 .login-container button:hover {
-    background-color: #555;
+    background-color: #C18F34; /* ocre dorado */
 }

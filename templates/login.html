@@ -25,7 +25,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">   
 
 </head>
-<body>
+<body class="login-background">
     <header>
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container-fluid">
@@ -34,45 +34,64 @@
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-    
+        
                 <!-- Navigation Items -->
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="nav-list navbar-nav me-auto"> 
+                    <ul class="nav-list navbar-nav me-auto">
                         <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
+                        {% endif %}
                         <li class="nav-item"><a href="/dataExploration" class="nav-link">Data Exploration Dashboard</a></li>
                         <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
                     </ul>
                     <ul class="nav-list navbar-nav login">
-                        <li class="nav-item"><a href="/login" class="nav-link active">Login</a></li>
-                    </ul>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                    <div class="user-icon">👤</div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item"><a href="/login" class="nav-link active">Login</a></li>
+                        {% endif %}
+                    </ul>                    
                 </div>
             </div>
         </nav>
     </header>
-    
-    <div class="login-container">
-        <h1>Log In</h1>
-        <input type="text" placeholder="Email account">
-        <input type="password" placeholder="Password">
-        <a href="/changePassword">Have you forgotten your password?</a>
-        <button>Submit</button>
-    </div>
-    
-    <footer>
-        <div class="footer-content">
-            <div class="logo"><img src="../static/images/Kulturparken.png"></div>
-            <div>
-                <p>House of Emigrants visiting address:</p>
-                <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
-            </div>
-            <div>
-                <p>About the House of Emigrants</p>
-                <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
-                <p>Contact information:</p>
-                <p>+46 470-70 42 00</p>
-                <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
-            </div>
+
+    <div>
+        <div class="login-container">
+            <h1>Log In</h1>
+            <form method="POST">
+                <input type="text" name="email" placeholder="Email account" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <a href="/changePassword">Have you forgotten your password?</a>
+                <button type="submit">Submit</button>
+            </form>
         </div>
-    </footer>
+    
+        
+        <footer>
+            <div class="footer-content">
+                <div class="logo"><img src="../static/images/Kulturparken.png"></div>
+                <div>
+                    <p>House of Emigrants visiting address:</p>
+                    <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
+                </div>
+                <div>
+                    <p>About the House of Emigrants</p>
+                    <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
+                    <p>Contact information:</p>
+                    <p>+46 470-70 42 00</p>
+                    <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
 </body>
 </html>

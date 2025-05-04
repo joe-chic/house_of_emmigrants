@@ -1,7 +1,9 @@
+/* Paleta "Tierra y memoria" aplicada a about.css */
+
 .about-space h1 {
     font-family: 'Montserrat', sans-serif;
     text-align: center;
-    color: #e44d26;
+    color: #A75D3C; /* siena quemado */
     font-weight: bolder;
     margin-top: 20px;
     font-size: 2.5rem;
@@ -11,7 +13,8 @@
 .about-space{
     margin: 0 auto 3.5rem auto;
     display: flex;
-    background-color: #EAD3C2;
+    background: linear-gradient(135deg, #F4EADC, #EAD3C2); /* marfil claro */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
     height:250px;
 }
@@ -33,4 +36,5 @@ section {
 
 h2 {
     font-size: 1.2em;
+    color: #4A4A4A; /* gris oscuro */
 }

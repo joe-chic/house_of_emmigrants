@@ -1,8 +1,60 @@
+/* Paleta "Tierra y memoria" aplicada a uploadTool.css */
+.file-preview {
+    width: 100%;        /* or whatever fixed width you prefer */
+    height: 150px;      /* set the “frame” height */
+    overflow: hidden;   /* hide any excess */
+  }
+  
+  .file-preview img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
 
+  .file-card .deleteButton {
+    display: block;
+    margin: 0.5rem auto;  /* vertical gap + auto horizontal centering */
+  }
+  
+  .file-card .file-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;         /* space between input and buttons */
+  }
+  
+  .file-card .file-actions input[type="file"] {
+    flex: 1 1 auto;      /* allow it to shrink */
+    max-width: 120px;     /* cap its width so it doesn’t overflow */
+  }
+  
+  
+.upload-background{
+    margin: 0 auto 3.5rem auto;
+    display: flex;
+    background: linear-gradient(135deg, #F4EADC, #EAD3C2); /* marfil claro */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    height:250px;
+}
+
+.upload-background h1{
+    font-family: 'Montserrat', sans-serif;
+    text-align: center;
+    color: #A75D3C; /* siena quemado */
+    font-weight: bolder;
+    margin-top: 20px;
+    font-size: 2.5rem;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+    align-items: center;
+    margin:auto;
+}
 
 .user-icon {
     font-size: 20px;
     cursor: pointer;
+    color: #66705C; /* verde musgo */
 }
 
 main {
@@ -12,10 +64,11 @@ main {
 
 main h2{
     margin-bottom: 40px;
+    color: #4A4A4A; /* gris oscuro */
 }
 
 h2, h3 {
-    color: #3b2f2f;
+    color: #4A4A4A; /* gris oscuro */
 }
 
 .upload-section {
@@ -25,7 +78,7 @@ h2, h3 {
 }
 
 .upload-box {
-    background-color: #f1d5bb;
+    background-color: #EAD3C2; /* suave */
     padding: 20px;
     border-radius: 8px;
     width: 50%;
@@ -33,15 +86,16 @@ h2, h3 {
 }
 
 .upload-box button {
-    background-color: #8d6c5b;
+    background-color: #A75D3C; /* siena quemado */
     color: white;
     border: none;
     padding: 10px;
     cursor: pointer;
+    border-radius: 5px;
 }
 
 .attached-files {
-    background-color: #f1d5bb;
+    background-color: #EAD3C2; /* suave */
     padding: 20px;
     border-radius: 8px;
 }
@@ -53,11 +107,12 @@ table {
 
 th, td {
     padding: 10px;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #A75D3C; /* siena quemado */
 }
 
 .attached-files hr{
     margin: 0 0 10px 0 !important;
+    border-color: #A75D3C; /* siena quemado */
 }
 
 .form-buttons {
@@ -70,18 +125,20 @@ th, td {
     border: none;
     cursor: pointer;
 
-    background-color: #E3E3E3;
-    border: 1px solid black;
+    background-color: #F4EADC; /* marfil claro */
+    border: 1px solid #A75D3C; /* siena quemado */
+    border-radius: 5px;
 }
 
 .submitButton {
-    background-color: #434343;
-    color: #E3E3E3;
+    background-color: #A75D3C; /* siena quemado */
+    color: white;
 }
 
 .cancelButton {
-    background-color: #E3E3E3;
-    border: 1px solid black;
+    background-color: #EAD3C2; /* suave */
+    border: 1px solid #A75D3C; /* siena quemado */
+    color: #4A4A4A; /* gris oscuro */
 }
 
 .file-management {
@@ -89,34 +146,22 @@ th, td {
 }
 
 .search-bar input {
-    background-color: #EAD3C2;
+    background-color: #EAD3C2; /* suave */
     width: 100%;
     padding: 10px;
-    border: 1px solid black;
-    border-radius: 20px;
-}
-
-.search-bar input {
-    background-image: url("../images/search_icon.png"); /* Replace with your icon path */
-    background-repeat: no-repeat;
-    background-position: 10px center; /* Position the icon */
-    background-size: 16px 16px; /* Adjust icon size */
-    padding-left: 35px; /* Add padding to make space for the icon */
-    width: 100%; /* Adjust as needed */
-    height: 55px; /* Optional: Adjust height for a better look */
-    border: 1px solid #ccc; /* Optional border */
-    border-radius: 50px; /* Rounded corners */
+    border: 1px solid #A75D3C; /* verde musgo */
+    border-radius: 50px;
     outline: none;
     margin-bottom: 20px;
 }
 
 .search-bar i {
-    color: black;
+    color: #4A4A4A; /* gris oscuro */
     margin-right: 8px;
 }
 
 .view-button {
-    background-color: #EAD3C2;
+    background-color: #EAD3C2; /* suave */
     border: none;
     padding: 10px 15px;
     border-radius: 8px;
@@ -126,74 +171,123 @@ th, td {
     align-items: center;
     gap: 8px;
     margin: 10px 0;
+    color: #4A4A4A; /* gris oscuro */
 }
-
+/* FILE GRID VIEW: estilo tipo tiles */
 .file-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+    gap: 20px; /* espacio entre las tarjetas */
+    padding: 10px;
 }
 
+.file-grid .file-card {
+    border: 1px solid #A75D3C;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: box-shadow 0.3s ease;
+}
+
+.file-grid .file-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.file-grid .file-card .file-preview {
+    width: 100%;
+    height: 120px;
+    background-color: #f0f0f0;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+/* FILE LIST VIEW: estilo lista horizontal */
 .file-list {
     display: flex;
     flex-direction: column;
-}
-
-.file-card {
-    background: #EAD3C2;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    gap: 15px; /* espacio entre las tarjetas */
+    padding: 10px;
 }
 
 .file-list .file-card {
-    display: flex; /* Keep flex layout for consistent alignment */
-    flex-direction: row; /* Optional: Align elements in a row */
-    align-items: center;
+    border: 1px solid #A75D3C;
+    border-radius: 10px;
     padding: 15px;
-    margin-bottom: 20px; /* Add spacing between items */
-    border-bottom: 1px solid #ccc; /* Optional: Add separator */
+    display: flex;
+    align-items: center;
+    gap: 20px; /* << este gap separa bien preview, h4, p, y botones */
+    transition: box-shadow 0.3s ease;
+}
+
+.file-list .file-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.file-list .file-card .file-preview {
+    width: 100px;
+    height: 100px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    flex-shrink: 0; /* previene que la preview se haga pequeña */
+}
+
+/* Reseteamos márgenes para mantener ordenado */
+.file-list .file-card h4,
+.file-list .file-card p {
+    margin: 0;
+}
+
+/* Opcional: espaciado entre título y body en lista */
+.file-list .file-card h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .file-preview {
     width: 100%;
     height: 100px;
-    background-color: #d3b49f;
+    background-color: #d3b49f; /* terracota suave */
     border-radius: 5px;
     margin-bottom: 10px;
 }
 
 .deleteButton {
-    background-color: #434343;
+    background-color: #A75D3C; /* siena quemado */
     color: white;
     border: none;
     padding: 5px 10px;
     margin: 5px;
     cursor: pointer;
-    border: 1px solid black;
+    border: 1px solid #A75D3C;
+    border-radius: 5px;
 }
 
 .changeButton{
-    background-color: #E3E3E3;
-    border: none;
+    background-color: #F4EADC; /* marfil claro */
+    border: 1px solid #A75D3C; /* siena quemado */
     padding: 5px 10px;
     margin: 5px;
     cursor: pointer;
-    border: 1px solid black;
+    border-radius: 5px;
+    color: #4A4A4A; /* gris oscuro */
 }
 
 .logo {
     font-size: 20px;
     font-weight: bold;
+    color: #4A4A4A; /* gris oscuro */
 }
 
 a {
-    color: black;
+    color: #4A4A4A; /* gris oscuro */
 }
 
 .upload-section button{
-    background-color: #434343;
-    color:#E3E3E3;
+    background-color: #A75D3C; /* siena quemado */
+    color:white; /* suave */
     border-radius: 10px;
 }
 
@@ -204,4 +298,3 @@ a {
 .file-card button{
     border-radius: 10px;
 }
-

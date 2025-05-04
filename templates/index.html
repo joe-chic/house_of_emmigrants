@@ -34,20 +34,34 @@
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-    
+        
                 <!-- Navigation Items -->
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="nav-list navbar-nav me-auto"> 
+                    <ul class="nav-list navbar-nav me-auto">
                         <li class="nav-item"><a href="/" class="nav-link active">Home</a></li>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
+                        {% endif %}
                         <li class="nav-item"><a href="/dataExploration" class="nav-link">Data Exploration Dashboard</a></li>
                         <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
                     </ul>
                     <ul class="nav-list navbar-nav login">
-                        <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
-                    </ul>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                    <div class="user-icon">👤</div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                        {% endif %}
+                    </ul>                    
                 </div>
             </div>
-        </nav>
+        </nav>     
     </header>
     
     

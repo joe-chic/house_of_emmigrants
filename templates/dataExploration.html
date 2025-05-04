@@ -41,26 +41,40 @@
     
     <header>
       <nav class="navbar navbar-expand-lg navbar-light">
-          <div class="container-fluid">
-              <!-- Hamburger Button -->
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                  aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-              </button>
-  
-              <!-- Navigation Items -->
-              <div class="collapse navbar-collapse" id="navbarNav">
-                  <ul class="nav-list navbar-nav me-auto"> 
-                      <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
-                      <li class="nav-item"><a href="/dataExploration" class="nav-link active">Data Exploration Dashboard</a></li>
-                      <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
-                  </ul>
-                  <ul class="nav-list navbar-nav login">
-                      <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
-                  </ul>
-              </div>
-          </div>
-      </nav>
+        <div class="container-fluid">
+            <!-- Hamburger Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <!-- Navigation Items -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="nav-list navbar-nav me-auto">
+                    <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                    {% if session.get('admin_id') %}
+                        <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
+                    {% endif %}
+                    <li class="nav-item"><a href="/dataExploration" class="nav-link active">Data Exploration Dashboard</a></li>
+                    <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
+                </ul>
+                <ul class="nav-list navbar-nav login">
+                    {% if session.get('admin_id') %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                <div class="user-icon">👤</div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                    {% endif %}
+                </ul>                    
+            </div>
+        </div>
+    </nav>    
   </header>
 
     <div class="container-fluid p-0">
@@ -86,66 +100,81 @@
         </button>
       </section>
 
-      <section class="timeline">
-        <h2>Timeline</h2>
-        <input type="range" min="1801" max="2000" value="1900">
+      <!-- Replace your <section class="timeline"> with: -->
+    <section class="timeline">
+      <h2>Timeline</h2>
+      <div id="timeline-chart" style="width:100%; height:400px;"></div>
     </section>
     
+    
+    <!-- Replace <section class="chart"> (word frequency) with: -->
     <section class="chart">
-        <h2>Word frequency</h2>
-        <img src="word_frequency_chart.png" alt="Word Frequency Chart">
+      <h2>Word Frequency</h2>
+      <div id="wordfreq-chart" style="width:100%; height:400px;"></div>
     </section>
 
     <script src="https://code.highcharts.com/highcharts.js"></script>
 
     <button class="download">⬇ Download</button>
     
+      <!-- Replace <section class="map"> with: -->
     <section class="map">
-        <h2>Geographic Distribution</h2>
-        <img src="world_map.png" alt="Geographic Distribution Map">
+      <h2>Geographic Distribution</h2>
+      <div id="geo-chart" style="width:100%; height:400px;"></div>
     </section>
 
-      <section class="stories">
-        <h2>
-          <i class="fas fa-book-open me-2"></i>Stories and Demographic
-          Information
-        </h2>
+    <!-- Stories section: loop over `stories` passed in -->
+    <section class="stories">
+      <h2><i class="fas fa-book-open me-2"></i> Recent Stories</h2>
+      {% for title, date, first, last in stories %}
         <div class="story">
-          <img
-            src="../static/images/carousel1.png"
-            alt="Historical Image"
-            class="story-image"
-          />
-          <div class="text">
-            <h3>
-              <i class="fas fa-quote-left me-2 text-muted"></i>Description Story
-              1
-            </h3>
-            <p>"Sample historical story text..."</p>
-            <p class="text-muted">
-              <small><i class="fas fa-calendar me-1"></i> Circa 1890</small>
-            </p>
-          </div>
-          <div class="extracted-data">
-            <h3><i class="fas fa-database me-2"></i>Extracted Data</h3>
-            <p>
-              <strong><i class="fas fa-users me-1"></i> Demography:</strong>
-              Sample extracted demographic data.
-            </p>
-            <p>
-              <strong><i class="fas fa-ship me-1"></i> Travel records:</strong>
-              Sample travel record insights.
-            </p>
-          </div>
+          <h3>{{ title }}</h3>
+          <p><small>{{ date.strftime('%Y-%m-%d') }} by {{ first }} {{ last }}</small></p>
         </div>
-
-        <div class="text-center mt-4">
-          <button class="btn btn-outline-secondary">
-            <i class="fas fa-plus-circle me-2"></i>Load More Stories
-          </button>
-        </div>
-      </section>
-    </div>
+      {% else %}
+        <p>No recent stories available.</p>
+      {% endfor %}
+    </section>      
+  </div>
+  <!-- At the bottom, after loading Highcharts -->
+  <script>
+      // Parse the JSON-encoded data
+      const years   = {{ timeline_years|safe }};
+      const counts  = {{ timeline_counts|safe }};
+      const wfWords = {{ wf_words|safe }};
+      const wfCnts  = {{ wf_counts|safe }};
+      const geoC    = {{ geo_countries|safe }};
+      const geoCnt  = {{ geo_counts|safe }};
+      
+      // 1) Timeline chart
+      Highcharts.chart('timeline-chart', {
+        chart: { type: 'line' },
+        title: { text: 'Stories per Year' },
+        xAxis: { categories: years },
+        yAxis: { title: { text: 'Number of Stories' } },
+        series: [{ name: 'Stories', data: counts }]
+      });
+      
+      // 2) Word frequency (bar)
+      Highcharts.chart('wordfreq-chart', {
+        chart: { type: 'column' },
+        title: { text: 'Top 10 Keywords' },
+        xAxis: { categories: wfWords, crosshair: true },
+        yAxis: { title: { text: 'Total Frequency' } },
+        series: [{ name: 'Frequency', data: wfCnts }]
+      });
+      
+      // 3) Geographic distribution (pie)
+      Highcharts.chart('geo-chart', {
+        chart: { type: 'pie' },
+        title: { text: 'Top 10 Countries of Origin' },
+        series: [{
+          name: 'Count',
+          colorByPoint: true,
+          data: geoC.map((c,i) => ({ name: c, y: geoCnt[i] }))
+        }]
+      });
+    </script>
 
     <footer>
       <div class="footer-content">
