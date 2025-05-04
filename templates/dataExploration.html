@@ -36,6 +36,9 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
+		<!-- Highcharts CDN -->
+		<script src="https://code.highcharts.com/highcharts.js"></script>
   </head>
   <body>
     
@@ -94,9 +97,15 @@
     <section class="chart">
         <h2>Word frequency</h2>
         <img src="word_frequency_chart.png" alt="Word Frequency Chart">
-    </section>
 
-    <script src="https://code.highcharts.com/highcharts.js"></script>
+				<h1 class="text-2xl font-semibold text-slate-800">Word Frequency from Database</h1>
+
+				<div id="chart-container">
+				  <p class="p-4 text-center text-gray-500">Loading chart...</p>
+				</div>
+
+        <script src="{{ url_for('static', filename='chart.js') }}"></script>
+    </section>
 
     <button class="download">⬇ Download</button>
     
