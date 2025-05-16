@@ -127,14 +127,6 @@
                     <p>{{ file.type|capitalize }}</p>
                   </div>
                   <div class="file-actions">
-                    <!-- DELETE form -->
-                    <form action="{{ url_for('delete_file') }}" method="post" class="d-inline">
-                      <input type="hidden" name="file_path" value="{{ file.path }}">
-                      <button type="submit" class="btn btn-sm btn-danger deleteButton">
-                        Delete
-                      </button>
-                    </form>
-          
                     <!-- REPLACE form -->
                     <form action="{{ url_for('replace_file') }}" method="post"
                           enctype="multipart/form-data" class="d-inline">
@@ -144,6 +136,14 @@
                              style="width: auto;">
                       <button type="submit" class="btn btn-sm btn-secondary changeButton">
                         Change
+                      </button>
+                    </form>
+
+                    <!-- DELETE form -->
+                    <form action="{{ url_for('delete_file') }}" method="post" class="d-inline">
+                      <input type="hidden" name="file_path" value="{{ file.path }}">
+                      <button type="submit" class="btn btn-sm btn-danger deleteButton">
+                        Delete
                       </button>
                     </form>
                   </div>

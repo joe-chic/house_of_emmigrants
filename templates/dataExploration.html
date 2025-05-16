@@ -85,27 +85,29 @@
     </div>
 
     <div class="container">
-      <section class="search">
-        <input type="text" placeholder="Search for specific topic" />
-        <button><i class="fas fa-search"></i></button>
-      </section>
-
       <section class="filters">
         <button class="region">
           <i class="fas fa-globe-americas me-2"></i>Region
         </button>
-        <button class="general">GENERAL</button>
         <button class="time-period">
           <i class="fas fa-calendar-alt me-2"></i>Time Period
         </button>
+        <button class="general">Reset</button>
       </section>
+
+      <!--This section is supposed to have the keyword selection panel-->
+    <section>
+      <h2>Keyword Selection Panel</h2>
+    </section>
 
       <!-- Replace your <section class="timeline"> with: -->
     <section class="timeline">
-      <h2>Timeline</h2>
+      <h2>Trend graph</h2>
       <div id="timeline-chart" style="width:100%; height:400px;"></div>
     </section>
     
+    <!--Button to download the Trend Graph-->
+    <button class="download">⬇ Download</button>
     
     <!-- Replace <section class="chart"> (word frequency) with: -->
     <section class="chart">
@@ -115,6 +117,7 @@
 
     <script src="https://code.highcharts.com/highcharts.js"></script>
 
+    <!--Button to download the Word Cloud-->
     <button class="download">⬇ Download</button>
     
       <!-- Replace <section class="map"> with: -->
@@ -123,9 +126,18 @@
       <div id="geo-chart" style="width:100%; height:400px;"></div>
     </section>
 
+    <!--Button to download to Download the Geographic Distribution of the worlds.-->
+    <button class="download">⬇ Download</button>
+
     <!-- Stories section: loop over `stories` passed in -->
     <section class="stories">
       <h2><i class="fas fa-book-open me-2"></i> Recent Stories</h2>
+      
+      <section class="search">
+        <input type="text" placeholder="Search for specific story" />
+        <button><i class="fas fa-search"></i></button>
+      </section>
+
       {% for title, date, first, last in stories %}
         <div class="story">
           <h3>{{ title }}</h3>
@@ -158,7 +170,7 @@
       // 2) Word frequency (bar)
       Highcharts.chart('wordfreq-chart', {
         chart: { type: 'column' },
-        title: { text: 'Top 10 Keywords' },
+        title: { text: 'Keywords' },
         xAxis: { categories: wfWords, crosshair: true },
         yAxis: { title: { text: 'Total Frequency' } },
         series: [{ name: 'Frequency', data: wfCnts }]
@@ -167,7 +179,7 @@
       // 3) Geographic distribution (pie)
       Highcharts.chart('geo-chart', {
         chart: { type: 'pie' },
-        title: { text: 'Top 10 Countries of Origin' },
+        title: { text: 'Countries of Origin' },
         series: [{
           name: 'Count',
           colorByPoint: true,

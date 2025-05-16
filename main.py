@@ -72,7 +72,6 @@ def replace_file():
 
     return redirect(url_for('upload_tool'))
 
-
 # Database connection settings
 DB_NAME = 'house_of_emigrants'
 DB_USER = 'postgres'
@@ -103,7 +102,8 @@ def login():
         conn = get_db_connection()
         cur = conn.cursor()
 
-
+        # TODO: Make it work so that autofill is not a problem.
+        
         query = sql.SQL("SELECT * FROM admins WHERE email = %s")
         cur.execute(query, (email.lower(),))
         conn.commit()
@@ -136,10 +136,6 @@ def change_password():
 
 @app.route('/dataExploration')
 def data_exploration():
-    if 'admin_id' not in session:
-        flash('Please log in to access the dashboard.', 'warning')
-        return redirect(url_for('login'))
-
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -160,8 +156,7 @@ def data_exploration():
       FROM Relatos_Palabras rp
       JOIN Palabras_Clave pk ON rp.palabra_clave_id = pk.palabra_clave_id
       GROUP BY pk.palabra
-      ORDER BY freq DESC
-      LIMIT 10;
+      ORDER BY freq DESC;
     """)
     word_freq = cur.fetchall()  # [('migrar', 50), ('trabajo', 42), ...]
 
@@ -170,8 +165,7 @@ def data_exploration():
       SELECT pais_origen, COUNT(*) AS cnt
       FROM Personas
       GROUP BY pais_origen
-      ORDER BY cnt DESC
-      LIMIT 10;
+      ORDER BY cnt DESC;
     """)
     geo = cur.fetchall()  # [('Sweden', 100), ('Mexico', 80), ...]
 
@@ -180,8 +174,7 @@ def data_exploration():
       SELECT r.titulo_relato, r.fecha_relato, p.nombre, p.apellido
       FROM Relatos_Emigracion r
       JOIN Personas p ON r.persona_id = p.persona_id
-      ORDER BY r.fecha_relato DESC
-      LIMIT 3;
+      ORDER BY r.fecha_relato DESC;
     """)
     stories = cur.fetchall()  # [('Title1', date1, 'Jane', 'Doe'), ...]
 
