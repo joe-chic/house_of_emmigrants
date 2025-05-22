@@ -6,11 +6,11 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 # --- Configuration ---
 # Adjust this to the exact Gemma model you have downloaded or want to use from Hugging Face Hub
 # Examples: "google/gemma-2b-it", "google/gemma-7b-it", "google/gemma-1.1-2b-it"
-MODEL_NAME = "google/gemma-2b-it" 
+MODEL_NAME = "google/gemma-3-1b-it" 
 
 # Set to True to use 4-bit quantization with BitsAndBytes to save memory
 # Requires bitsandbytes to be installed correctly
-USE_QUANTIZATION = True 
+USE_QUANTIZATION = False
 
 # Maximum number of new tokens the model can generate for the JSON output.
 # Adjust if your JSON is often truncated or too long.
@@ -228,44 +228,11 @@ if __name__ == "__main__":
         device = model.device # Get the device the model was loaded onto
         print(f"Model is on device: {device}")
 
-        # --- OPTION 1: Process a single sample interview text ---
-        sample_interview_text = """
-        Interviewer: Welcome, Anders. Can you state your full name for our records?
-        Anders: Anders Persson.
-        Interviewer: When did you leave Sweden, Mr. Persson?
-        Anders: It was late summer, August of 1888. I was just a young man, single at the time.
-        Interviewer: And your reasons for emigrating?
-        Anders: Land was scarce back home, and America promised economic opportunity. My cousin, Lars, had gone a few years prior and wrote of good wages.
-        Interviewer: How did you travel?
-        Anders: A long trip! First a small boat to connect to a train, and then the big steamship from Gothenburg. It took many weeks.
-        Interviewer: What was your education and occupation?
-        Anders: I had basic primary school. I worked as a farm laborer in Sweden. My legal status was simply a citizen of Sweden.
-        Interviewer: Did you have any plans to return to Sweden?
-        Anders: At the time, I thought perhaps one day, but America became my home.
-        Interviewer: Thank you, Anders. This is very helpful. The journey itself, you mentioned steamship and train. Any other means?
-        Anders: No, mainly those two. The steamship was the major part. We were Lutherans, our family.
-        """
-        
-        print("\n--- Analyzing sample interview text ---")
-        # For single text, directly call call_gemma_local and parse
-        json_str_sample = call_gemma_local(sample_interview_text, model, tokenizer, device)
-        if json_str_sample:
-            try:
-                extracted_info_sample = json.loads(json_str_sample)
-                print("\n--- Extracted Information (Sample Text) ---")
-                for key, value in extracted_info_sample.items():
-                    print(f"  \"{key}\": {repr(value)}")
-            except json.JSONDecodeError as e:
-                print(f"Error decoding JSON from sample text analysis: {e}")
-                print(f"Received string: {json_str_sample}")
-        else:
-            print("Failed to get JSON response for sample text.")
 
-
-        # --- OPTION 2: Process all .txt files in a directory ---
-        # Create a directory named 'interviews' in the same location as the script
+        # --- Process all .txt files in a directory ---
+        # Create a directory named 'text' in the same location as the script
         # and place your .txt interview files there.
-        interview_dir = "interviews" 
+        interview_dir = "text" 
         if not os.path.exists(interview_dir):
             print(f"\nDirectory '{interview_dir}' not found. Please create it and add .txt files to process multiple files.")
         else:
