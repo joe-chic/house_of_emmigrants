@@ -6,9 +6,9 @@
     <title>Data Exploration Dashboard</title>
 
     <!--GENERAL STYLE-->
-    <link rel="stylesheet" href="../static/css/general.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/general.css') }}" />
     <!--SPECIFIC STYLE-->
-    <link rel="stylesheet" href="../static/css/dataExploration.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dataExploration.css') }}" />
 
     <!-- Bootstrap CSS -->
     <link
@@ -17,20 +17,11 @@
       integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
       crossorigin="anonymous"
     />
-
-    <!-- Bootstrap JS -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
-      crossorigin="anonymous"
-    ></script>
-
     <!-- Font Awesome -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
-
     <!--Montserrat-->
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
@@ -41,34 +32,31 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container-fluid">
-                <!-- Hamburger Button -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-        
-                <!-- Navigation Items -->
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="nav-list navbar-nav me-auto">
-                        <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                        <li class="nav-item"><a href="{{ url_for('homepage') }}" class="nav-link">Home</a></li>
                         {% if session.get('admin_id') %}
-                            <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
+                            <li class="nav-item"><a href="{{ url_for('upload_tool') }}" class="nav-link">Upload Files</a></li>
                         {% endif %}
-                        <li class="nav-item"><a href="/dataExploration" class="nav-link active">Data Exploration Dashboard</a></li>
-                        <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
+                        <li class="nav-item"><a href="{{ url_for('data_exploration') }}" class="nav-link active">Data Exploration Dashboard</a></li>
+                        <li class="nav-item"><a href="{{ url_for('about') }}" class="nav-link">About & Contact</a></li>
                     </ul>
                     <ul class="nav-list navbar-nav login">
                         {% if session.get('admin_id') %}
                           <li class="nav-item dropdown">
                               <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                  👤 {{ session.get('admin_email') }}
+                                  👤 {{ session.get('admin_email', 'Admin') }} {# Added default text #}
                               </a>
                               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                  <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                                  <li><a class="dropdown-item" href="{{ url_for('logout') }}">Log out</a></li>
                               </ul>
                           </li>
                       {% else %}
-                          <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                          <li class="nav-item"><a href="{{ url_for('login') }}" class="nav-link">Login</a></li>
                       {% endif %}
                     </ul>                    
                 </div>
@@ -84,31 +72,43 @@
     </div>
 
     <div class="container">
-      <div class="d-flex gap-2 mb-3">
-        <button class="btn btn-outline-primary">Region</button>
-        <button class="btn btn-outline-primary">Time Period</button>
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="d-flex gap-2 my-3"> {# Added my-3 for spacing #}
+        <button class="btn btn-outline-primary"><i class="fas fa-globe-americas me-1"></i>Region</button>
+        <button class="btn btn-outline-primary"><i class="fas fa-calendar-alt me-1"></i>Time Period</button>
         <button class="btn btn-outline-secondary">Reset</button>
       </div>
 
       <!-- Timeline -->
-      <section class="mb-5">
+      <section class="mb-5 chart-container"> {# Added chart-container class #}
         <h2>Travels per Year</h2>
-        <div id="timeline-chart" style="height:400px;"></div>
-        <button class="btn btn-sm btn-link mt-2">⬇ Download</button>
+        <div id="timeline-chart" style="height:400px;" class="chart-placeholder"></div> {# Added chart-placeholder #}
+        <button class="btn btn-sm btn-link mt-2 download-btn" data-chart-id="timeline-chart">⬇ Download</button>
       </section>
 
       <!-- Top Keywords -->
-      <section class="mb-5">
+      <section class="mb-5 chart-container"> {# Added chart-container class #}
         <h2>Top Keywords</h2>
-        <div id="wordfreq-chart" style="height:400px;"></div>
-        <button class="btn btn-sm btn-link mt-2">⬇ Download</button>
+        <div id="wordfreq-chart" style="height:400px;" class="chart-placeholder"></div> {# Added chart-placeholder #}
+        <button class="btn btn-sm btn-link mt-2 download-btn" data-chart-id="wordfreq-chart">⬇ Download</button>
       </section>
 
       <!-- Geographic Distribution -->
-      <section class="mb-5">
+      <section class="mb-5 chart-container"> {# Added chart-container class #}
         <h2>Destination Cities</h2>
-        <div id="geo-chart" style="height:400px;"></div>
-        <button class="btn btn-sm btn-link mt-2">⬇ Download</button>
+        <div id="geo-chart" style="height:400px;" class="chart-placeholder"></div> {# Added chart-placeholder #}
+        <button class="btn btn-sm btn-link mt-2 download-btn" data-chart-id="geo-chart">⬇ Download</button>
       </section>
 
       <!-- Recent Journeys -->
@@ -117,138 +117,177 @@
 
         <div class="input-group mb-3">
           <input id="searchInput" type="text" class="form-control" placeholder="Search journey by title..." onkeyup="filterJourneys()" />
-          <button class="btn btn-outline-secondary" onclick="filterJourneys()"><i class="fas fa-search"></i></button>
+          <button class="btn btn-outline-secondary" type="button" onclick="filterJourneys()"><i class="fas fa-search"></i></button> {# Added type="button" #}
         </div>
 
-        <div class="list-group">
-          {% for journey in stories %}
-            <div class="list-group-item mb-4">
-              <!-- Main Info -->
-              <h5 class="mb-1">{{ journey.title }}</h5>
-
-              <!-- Story Summary -->
-              <div class="mt-2">
-                <p>{{ journey.summary }}</p>
+        <div id="journeyList" class="list-group"> {# Added ID for easier JS targeting #}
+          {% if stories %}
+            {% for journey in stories %}
+              <div class="list-group-item mb-4 journey-item"> {# Added journey-item class #}
+                <h5 class="mb-1 journey-title">{{ journey.title }}</h5>
+                <div class="mt-2">
+                  <p>{{ journey.summary }}</p>
+                </div>
+                <div class="mt-3 p-3 bg-light rounded">
+                  <h6>Demographic Information</h6>
+                  <ul class="list-unstyled mb-0"> {# Changed to list-unstyled #}
+                    {% if journey.main_first or journey.main_last %}<li><strong>Interviewee:</strong> {{ journey.main_first }} {{ journey.main_last }}</li>{% endif %}
+                    {% if journey.sex %}<li><strong>Sex:</strong> {{ journey.sex }}</li>{% endif %}
+                    {% if journey.marital_status %}<li><strong>Marital Status:</strong> {{ journey.marital_status }}</li>{% endif %}
+                    {% if journey.education_level %}<li><strong>Education:</strong> {{ journey.education_level }}</li>{% endif %}
+                    {% if journey.legal_status %}<li><strong>Legal Status:</strong> {{ journey.legal_status }}</li>{% endif %}
+                    {% if journey.mentions and journey.mentions|length > 0 and journey.mentions != [''] %}
+                      <li><strong>Mentions:</strong> {{ journey.mentions|join(', ') }}</li>
+                    {% endif %}
+                  </ul>
+                </div>
+                <div class="mt-3 p-3 bg-white border rounded">
+                  <h6>Travel Information</h6>
+                  <ul class="list-unstyled mb-0"> {# Changed to list-unstyled #}
+                    {% if journey.departure_date %}
+                      <li><strong>Departure:</strong> {{ journey.departure_date.strftime('%Y-%m-%d') if journey.departure_date else 'N/A' }}</li>
+                    {% endif %}
+                    {% if journey.destination_city or journey.destination_country %}
+                      <li><strong>Destination:</strong> {{ journey.destination_city if journey.destination_city else '' }}{% if journey.destination_city and journey.destination_country %}, {% endif %}{{ journey.destination_country if journey.destination_country else '' }}</li>
+                    {% endif %}
+                    {% if journey.motive %}<li><strong>Motive:</strong> {{ journey.motive }}</li>{% endif %}
+                    {% if journey.travel_duration %}<li><strong>Duration:</strong> {{ journey.travel_duration }}</li>{% endif %}
+                    {% if journey.return_plans %}<li><strong>Return Plans:</strong> {{ journey.return_plans }}</li>{% endif %}
+                    {% if journey.methods and journey.methods|length > 0 and journey.methods != [''] %}
+                      <li><strong>Methods:</strong> {{ journey.methods|join(', ') }}</li>
+                    {% endif %}
+                  </ul>
+                </div>
               </div>
-
-              <!-- Demographics -->
-              <div class="mt-3 p-3 bg-light rounded">
-                <h6>Demographic Information</h6>
-                <ul class="mb-0">
-                  {% if journey.sex %}<li><strong>Sex:</strong> {{ journey.sex }}</li>{% endif %}
-                  {% if journey.marital_status %}<li><strong>Marital Status:</strong> {{ journey.marital_status }}</li>{% endif %}
-                  {% if journey.education_level %}<li><strong>Education Level:</strong> {{ journey.education_level }}</li>{% endif %}
-                  {% if journey.legal_status %}<li><strong>Legal Status:</strong> {{ journey.legal_status }}</li>{% endif %}
-                  {% if journey.mentions %}
-                    <li><strong>Mentions:</strong>
-                      {% set printed = false %}
-                      {% for m in journey.mentions %}
-                        {% if m %}
-                          {% if printed %}, {% endif %}{{ m }}
-                          {% set printed = true %}
-                        {% endif %}
-                      {% endfor %}
-                    </li>
-                  {% endif %}
-                </ul>
-              </div>
-
-              <!-- Travel Info -->
-              <div class="mt-3 p-3 bg-white border rounded">
-                <h6>Travel Information</h6>
-                <ul class="mb-0">
-                  {% if journey.departure_date %}
-                    <li><strong>Departure Date:</strong> {{ journey.departure_date.strftime('%Y-%m-%d') }}</li>
-                  {% endif %}
-                  {% if journey.destination_city and journey.destination_country %}
-                    <li><strong>Destination:</strong> {{ journey.destination_city }}, {{ journey.destination_country }}</li>
-                  {% endif %}
-                  {% if journey.motive %}
-                    <li><strong>Motive:</strong> {{ journey.motive }}</li>
-                  {% endif %}
-                  {% if journey.travel_duration %}
-                    <li><strong>Duration:</strong> {{ journey.travel_duration }}</li>
-                  {% endif %}
-                  {% if journey.return_plans %}
-                    <li><strong>Return Plans:</strong> {{ journey.return_plans }}</li>
-                  {% endif %}
-                  {% if journey.methods %}
-                    <li><strong>Travel Methods:</strong>
-                      {% set ns = namespace(seen=[]) %}
-                      {% set first = true %}
-                      {% for m in journey.methods %}
-                        {% if m and m not in ns.seen %}
-                          {% if not first %}, {% endif %}{{ m }}
-                          {% set first = false %}
-                          {% set ns.seen = ns.seen + [m] %}
-                        {% endif %}
-                      {% endfor %}
-                    </li>
-                  {% endif %}
-                </ul>
-              </div>
-            </div>
+            {% endfor %}
           {% else %}
-            <p>No recent journeys available.</p>
-          {% endfor %}
+            <p class="list-group-item">No recent journeys available.</p>
+          {% endif %}
         </div>
       </section>
     </div>
 
+    <!-- Highcharts and Bootstrap JS -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Custom JavaScript for Charts and Filtering -->
     <script>
+      // Search/Filter function for Journeys
       function filterJourneys() {
           const query = document.getElementById('searchInput').value.toLowerCase();
-          document.querySelectorAll('.list-group-item').forEach(item => {
-          const title = item.querySelector('h5').textContent.toLowerCase();
-          item.style.display = title.includes(query) ? '' : 'none';
+          document.querySelectorAll('.journey-item').forEach(item => { // Target .journey-item
+            const titleElement = item.querySelector('.journey-title'); // Target .journey-title
+            if (titleElement) {
+                const title = titleElement.textContent.toLowerCase();
+                item.style.display = title.includes(query) ? '' : 'none';
+            }
           });
       }
 
-      const years   = {{ timeline_years|safe }};
-      const counts  = {{ timeline_counts|safe }};
-      const wfWords = {{ wf_words|safe }};
-      const wfCnts  = {{ wf_counts|safe }};
-      const geoC    = {{ geo_countries|safe }};
-      const geoCnt  = {{ geo_counts|safe }};
+      // Highcharts Initialization
+      document.addEventListener('DOMContentLoaded', function () {
+        // Data passed from Flask (ensure these variables are correctly populated in your Flask template)
+        const timelineYearsData = {{ timeline_years|safe }};
+        const timelineCountsData = {{ timeline_counts|safe }};
+        const wfWordsData = {{ wf_words|safe }};
+        const wfCountsData = {{ wf_counts|safe }};
+        const geoItemsData = {{ geo_items|safe }};      // Use geo_items from Flask
+        const geoCountsData = {{ geo_item_counts|safe }}; // Use geo_item_counts from Flask
 
-      Highcharts.chart('timeline-chart', {
-        chart: { type: 'line' },
-        title: { text: null },
-        xAxis: { categories: years },
-        yAxis: { title: { text: 'Count' } },
-        series: [{ name: 'Travels', data: counts }]
-      });
+        // 1) Timeline chart
+        if (timelineYearsData && timelineYearsData.length > 0) {
+            Highcharts.chart('timeline-chart', {
+                chart: { type: 'line' },
+                title: { text: null }, // Title is in <h2> now
+                xAxis: { categories: timelineYearsData, title: {text: 'Year'} },
+                yAxis: { title: { text: 'Number of Travels' }, min: 0, allowDecimals: false },
+                series: [{ name: 'Travels', data: timelineCountsData, color: '#0d6efd' }],
+                tooltip: { pointFormat: '{series.name}: <b>{point.y}</b>' }
+            });
+        } else {
+            document.getElementById('timeline-chart').innerHTML = '<p class="text-center p-3">No timeline data available.</p>';
+        }
 
-      Highcharts.chart('wordfreq-chart', {
-        chart: { type: 'column' },
-        title: { text: null },
-        xAxis: { categories: wfWords, crosshair: true },
-        yAxis: { title: { text: 'Frequency' } },
-        series: [{ name: 'Keywords', data: wfCnts }]
-      });
+        // 2) Word frequency (bar chart for better readability)
+        if (wfWordsData && wfWordsData.length > 0) {
+            Highcharts.chart('wordfreq-chart', {
+                chart: { type: 'bar' },
+                title: { text: null }, // Title is in <h2> now
+                xAxis: { categories: wfWordsData, title: { text: null } }, // No title for x-axis if categories are clear
+                yAxis: { title: { text: 'Frequency' }, min: 0, allowDecimals: false },
+                series: [{ name: 'Keywords', data: wfCountsData, color: '#198754' }],
+                tooltip: { pointFormat: '{series.name}: <b>{point.y}</b>' }
+            });
+        } else {
+            document.getElementById('wordfreq-chart').innerHTML = '<p class="text-center p-3">No keyword data available.</p>';
+        }
 
-      Highcharts.chart('geo-chart', {
-        chart: { type: 'pie' },
-        title: { text: null },
-        series: [{
-          name: 'Count',
-          colorByPoint: true,
-          data: geoC.map((c,i) => ({ name: c, y: geoCnt[i] }))
-        }]
+        // 3) Geographic distribution (Destination Cities - Pie Chart)
+        if (geoItemsData && geoItemsData.length > 0) {
+            const geoChartData = geoItemsData.map((item, i) => ({
+                name: item,
+                y: geoCountsData[i]
+            }));
+
+            Highcharts.chart('geo-chart', {
+                chart: { type: 'pie' },
+                title: { text: null }, // Title is in <h2> now
+                tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b> ({point.y})' },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    name: 'Journeys', // Changed series name
+                    colorByPoint: true,
+                    data: geoChartData
+                }]
+            });
+        } else {
+            document.getElementById('geo-chart').innerHTML = '<p class="text-center p-3">No geographic data available.</p>';
+        }
+
+        // Add event listeners for download buttons
+        document.querySelectorAll('.download-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const chartId = this.dataset.chartId;
+                const chart = Highcharts.charts.find(c => c && c.renderTo.id === chartId);
+                if (chart) {
+                    chart.exportChart(); // Default PNG export
+                } else {
+                    console.error('Chart not found for ID:', chartId);
+                    alert('Chart not found for download.');
+                }
+            });
+        });
       });
     </script>
 
     <footer>
         <div class="footer-content">
-            <div class="logo"><img src="../static/images/Kulturparken.png"></div>
+            <div class="logo"><img src="{{ url_for('static', filename='images/Kulturparken.png') }}" alt="Kulturparken Logo"></div>
             <div>
                 <p>House of Emigrants visiting address:</p>
                 <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
             </div>
             <div>
                 <p>About the House of Emigrants</p>
-                <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
+                <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/" target="_blank" rel="noopener noreferrer">Official Website</a></p>
                 <p>Contact information:</p>
                 <p>+46 470-70 42 00</p>
                 <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>

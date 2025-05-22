@@ -126,129 +126,102 @@ def change_password():
 @app.route('/dataExploration')
 def data_exploration():
     conn = get_db_connection()
-    cur = conn.cursor()
+    
+    # Initialize data structures
+    timeline_years, timeline_counts = [], []
+    wf_words, wf_counts = [], []
+    geo_cities, geo_counts = [], [] # Changed from geo_countries for clarity
+    stories_list = [] # Renamed from 'stories' for clarity before processing
 
-    # 1) Timeline
-    cur.execute("""
-        SELECT EXTRACT(YEAR FROM departure_date)::INT AS year,
-               COUNT(*) AS total
-        FROM travel_info
-        WHERE departure_date IS NOT NULL
-        GROUP BY year
-        ORDER BY year;
-    """)
-    timeline = cur.fetchall()
+    try:
+        with conn.cursor() as cur:
+            with conn.transaction():
+                # 1) Timeline of Emigration Departure Dates
+                timeline_cursor_name = "timeline_c_py"
+                cur.execute("CALL get_emigration_departure_timeline_proc(%s);", (timeline_cursor_name,))
+                cur.execute(sql.SQL("FETCH ALL FROM {};").format(sql.Identifier(timeline_cursor_name)))
+                timeline_data = cur.fetchall()
+                if timeline_data:
+                    timeline_years = [row[0] for row in timeline_data]
+                    timeline_counts = [row[1] for row in timeline_data]
 
-    # 2) Top keywords
-    cur.execute("""
-        SELECT keyword, COUNT(*) AS freq
-        FROM keywords
-        GROUP BY keyword
-        ORDER BY freq DESC
-        LIMIT 10;
-    """)
-    word_freq = cur.fetchall()
+                # 2) Top Keywords
+                keyword_cursor_name = "keyword_c_py"
+                limit_for_keywords = 10
+                cur.execute("CALL get_top_salient_keywords_proc(%s, %s);", (keyword_cursor_name, limit_for_keywords))
+                cur.execute(sql.SQL("FETCH ALL FROM {};").format(sql.Identifier(keyword_cursor_name)))
+                word_freq_data = cur.fetchall()
+                if word_freq_data:
+                    wf_words = [row[0] for row in word_freq_data]
+                    wf_counts = [row[1] for row in word_freq_data]
 
-    # 3) Geo distribution
-    cur.execute("""
-        SELECT c.city, COUNT(*) AS cnt
-        FROM travel_info ti
-        JOIN cities c ON ti.destination_city = c.id_city
-        GROUP BY c.city
-        ORDER BY cnt DESC;
-    """)
-    geo = cur.fetchall()
+                # 3) Geographic Distribution (Destination Cities)
+                dest_city_cursor_name = "dest_city_c_py"
+                cur.execute("CALL get_destination_city_distribution_proc(%s);", (dest_city_cursor_name,))
+                cur.execute(sql.SQL("FETCH ALL FROM {};").format(sql.Identifier(dest_city_cursor_name)))
+                geo_data = cur.fetchall()
+                if geo_data:
+                    geo_cities = [row[0] for row in geo_data] # Now city names
+                    geo_counts = [row[1] for row in geo_data]
 
-    # 4) Recent stories with full details
-    cur.execute("""
-        SELECT
-          tf.story_title,
-          tf.story_summary,
-          -- Demographic for main interviewee
-          pi_main.first_name   AS main_first,
-          pi_main.first_surname AS main_last,
-          s.sex,
-          ms.status           AS marital_status,
-          el.level            AS education_level,
-          ls.status           AS legal_status,
-          -- Mentioned people names
-          ARRAY_AGG(pi_ment.first_name || ' ' || pi_ment.first_surname) 
-            FILTER (WHERE pi_ment.id_person IS NOT NULL) AS mentions,
-          -- Travel info
-          ti.departure_date,
-          c.city              AS destination_city,
-          co.country          AS destination_country,
-          mm.motive,
-          ti.travel_duration,
-          ti.return_plans,
-          ARRAY_AGG(tm.method) AS methods
-        FROM text_files tf
-        -- link main person
-        LEFT JOIN demographic_info di ON tf.id_demography = di.id_demography
-        LEFT JOIN person_info pi_main ON di.id_main_person = pi_main.id_person
-        LEFT JOIN sexes s ON di.id_sex = s.id_sex
-        LEFT JOIN marital_statuses ms ON di.id_marital = ms.id_marital
-        LEFT JOIN education_levels el ON di.id_education = el.id_education
-        LEFT JOIN legal_statuses ls ON di.id_legal = ls.id_legal
-        -- mentioned people
-        LEFT JOIN mention_link ml ON tf.id_demography = ml.id_demography
-        LEFT JOIN person_info pi_ment ON ml.id_person = pi_ment.id_person
-        -- travel info
-        LEFT JOIN travel_info ti ON tf.id_travel = ti.id_travel
-        LEFT JOIN cities c ON ti.destination_city = c.id_city
-        LEFT JOIN countries co ON c.id_country = co.id_country
-        LEFT JOIN motives_migration mm ON ti.id_motive_migration = mm.id_motive
-        LEFT JOIN travel_link tl ON ti.id_travel = tl.id_travel
-        LEFT JOIN travel_methods tm ON tl.id_travel_method = tm.id_travel_method
-        GROUP BY
-          tf.story_title, tf.story_summary,
-          pi_main.id_person, s.sex, ms.status, el.level, ls.status,
-          ti.departure_date, c.city, co.country, mm.motive,
-          ti.travel_duration, ti.return_plans
-        ORDER BY ti.departure_date DESC;
-    """)
-    recent = cur.fetchall()
+                # 4) Recent Stories with Full Details
+                recent_stories_cursor_name = "recent_stories_c_py"
+                limit_for_recent_stories = 5 # Or however many you want
+                cur.execute("CALL get_recent_stories_details_proc(%s, %s);", (recent_stories_cursor_name, limit_for_recent_stories))
+                cur.execute(sql.SQL("FETCH ALL FROM {};").format(sql.Identifier(recent_stories_cursor_name)))
+                recent_stories_raw = cur.fetchall()
 
-    cur.close()
-    conn.close()
-
-    # unpack the three chart datasets
-    timeline_years, timeline_counts = zip(*timeline) if timeline else ([], [])
-    wf_words, wf_counts             = zip(*word_freq) if word_freq else ([], [])
-    geo_countries, geo_counts       = zip(*geo) if geo else ([], [])
-
-    # build a list of dicts for rendering
-    stories = []
-    for row in recent:
-        stories.append({
-            'title':            row[0],
-            'summary':          row[1],
-            'main_first':       row[2],
-            'main_last':        row[3],
-            'sex':              row[4],
-            'marital_status':   row[5],
-            'education_level':  row[6],
-            'legal_status':     row[7],
-            'mentions':         row[8] or [],
-            'departure_date':   row[9],
-            'destination_city': row[10],
-            'destination_country': row[11],
-            'motive':           row[12],
-            'travel_duration':  row[13],
-            'return_plans':     row[14],
-            'methods':          row[15] or []
-        })
+                if recent_stories_raw:
+                    for row in recent_stories_raw:
+                        stories_list.append({
+                            'title':            row[0],
+                            'summary':          row[1],
+                            'main_first':       row[2],
+                            'main_last':        row[3],
+                            'sex':              row[4],
+                            'marital_status':   row[5],
+                            'education_level':  row[6],
+                            'legal_status':     row[7],
+                            'mentions':         row[8] or [], # Handled by COALESCE in SQL now
+                            'departure_date':   row[9],
+                            'destination_city': row[10],
+                            'destination_country': row[11],
+                            'motive':           row[12],
+                            'travel_duration':  row[13],
+                            'return_plans':     row[14],
+                            'methods':          row[15] or [], # Handled by COALESCE in SQL now
+                            'id_text_debug':    str(row[16]) # For debugging or unique key if needed
+                        })
+            # Transaction commits here
+            
+    except psycopg.Error as e:
+        flash(f"Database error fetching data for exploration: {e}", "danger")
+        app.logger.error(f"Data exploration DB error: {e}\nSQLSTATE: {e.sqlstate}")
+        # Ensure all lists are empty on error
+        timeline_years, timeline_counts = [], []
+        wf_words, wf_counts = [], []
+        geo_cities, geo_counts = [], []
+        stories_list = []
+    except Exception as e:
+        flash(f"An unexpected error occurred: {e}", "danger")
+        app.logger.error(f"Data exploration general error: {e}")
+        timeline_years, timeline_counts = [], []
+        wf_words, wf_counts = [], []
+        geo_cities, geo_counts = [], []
+        stories_list = []
+    finally:
+        if conn:
+            conn.close()
 
     return render_template('dataExploration.html',
         timeline_years   = json.dumps(list(timeline_years)),
         timeline_counts  = json.dumps(list(timeline_counts)),
         wf_words         = json.dumps(list(wf_words)),
         wf_counts        = json.dumps(list(wf_counts)),
-        geo_countries    = json.dumps(list(geo_countries)),
-        geo_counts       = json.dumps(list(geo_counts)),
-        stories          = stories
+        geo_items        = json.dumps(list(geo_cities)), # Changed to geo_items for cities
+        geo_item_counts  = json.dumps(list(geo_counts)),
+        stories          = stories_list # Pass the processed list of dicts
     )
-
 
 @app.route('/about')
 def about():
