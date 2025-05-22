@@ -239,3 +239,17 @@ INSERT INTO motives_migration (motive) VALUES ('education');
 INSERT INTO motives_migration (motive) VALUES ('adventure');
 INSERT INTO motives_migration (motive) VALUES ('land ownership');
 INSERT INTO motives_migration (motive) VALUES ('forced migration');
+
+
+-- create a test admin with email/password you choose
+INSERT INTO admins (id_admin, email, password)
+VALUES (
+  gen_random_uuid(),
+  'admin@example.com',
+  '666'
+);
+
+-- verify it’s there
+SELECT id_admin, email, password
+FROM admins
+WHERE email = 'admin@example.com';
