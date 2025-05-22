@@ -38,171 +38,295 @@
     />
   </head>
   <body>
-    
     <header>
-      <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <!-- Hamburger Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-    
-            <!-- Navigation Items -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="nav-list navbar-nav me-auto">
-                    <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
-                    {% if session.get('admin_id') %}
-                        <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
-                    {% endif %}
-                    <li class="nav-item"><a href="/dataExploration" class="nav-link active">Data Exploration Dashboard</a></li>
-                    <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
-                </ul>
-                <ul class="nav-list navbar-nav login">
-                    {% if session.get('admin_id') %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
-                                <div class="user-icon">👤</div>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                <li><a class="dropdown-item" href="/logout">Log out</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
-                    {% endif %}
-                </ul>                    
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid">
+                <!-- Hamburger Button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+        
+                <!-- Navigation Items -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="nav-list navbar-nav me-auto">
+                        <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
+                        {% endif %}
+                        <li class="nav-item"><a href="/dataExploration" class="nav-link active">Data Exploration Dashboard</a></li>
+                        <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
+                    </ul>
+                    <ul class="nav-list navbar-nav login">
+                        {% if session.get('admin_id') %}
+                          <li class="nav-item dropdown">
+                              <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                  👤 {{ session.get('admin_email') }}
+                              </a>
+                              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                  <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                              </ul>
+                          </li>
+                      {% else %}
+                          <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                      {% endif %}
+                    </ul>                    
+                </div>
             </div>
-        </div>
-    </nav>    
-  </header>
+        </nav>     
+    </header>
 
     <div class="container-fluid p-0">
-      <section class="hero">
-        <h1>Data Exploration and Dashboard</h1>
-        <p class="mt-2">Discover insights from historical emigration data</p>
+      <section class="hero text-center py-4">
+        <h1>Data Exploration Dashboard</h1>
+        <p class="mt-2">Insights from emigration journeys</p>
       </section>
     </div>
 
     <div class="container">
-      <section class="filters">
-        <button class="region">
-          <i class="fas fa-globe-americas me-2"></i>Region
-        </button>
-        <button class="time-period">
-          <i class="fas fa-calendar-alt me-2"></i>Time Period
-        </button>
-        <button class="general">Reset</button>
+      <!--
+      <div class="d-flex gap-2 mb-3">
+        <button class="btn btn-outline-primary">Region</button>
+        <button class="btn btn-outline-primary">Time Period</button>
+        <button class="btn btn-outline-secondary">Reset</button>
+      </div>
+      -->
+
+      <!-- Timeline -->
+      <section class="mb-5">
+        <h2>Travels per Year</h2>
+        <div id="timeline-chart" style="height: 500px;"></div>
       </section>
 
-      <!--This section is supposed to have the keyword selection panel-->
-    <section>
-      <h2>Keyword Selection Panel</h2>
-    </section>
+      <!-- Top Keywords -->
+      <section class="mb-5">
+        <h2>Top Keywords</h2>
+        <div id="wordfreq-chart" style="height:400px;"></div>
+      </section>
 
-      <!-- Replace your <section class="timeline"> with: -->
-    <section class="timeline">
-      <h2>Trend graph</h2>
-      <div id="timeline-chart" style="width:100%; height:400px;"></div>
-    </section>
-    
-    <!--Button to download the Trend Graph-->
-    <button class="download">⬇ Download</button>
-    
-    <!-- Replace <section class="chart"> (word frequency) with: -->
-    <section class="chart">
-      <h2>Word Frequency</h2>
-      <div id="wordfreq-chart" style="width:100%; height:400px;"></div>
-    </section>
+      <!-- Geographic Distribution -->
+      <section class="mb-5">
+        <h2>Destination Cities</h2>
+        <div id="geo-chart" style="height:400px;"></div>
+      </section>
+
+       <!-- Recent Journeys -->
+<section class="stories mb-5">
+  <h2 class="mb-4"><i class="fas fa-route me-2"></i> Recent Journeys</h2>
+
+  <div class="input-group mb-4 shadow-sm rounded">
+    <input id="searchInput" type="text" class="form-control border-0" placeholder="Search journey by title..." onkeyup="filterJourneys()" />
+    <button class="btn btn-primary" onclick="filterJourneys()"><i class="fas fa-search"></i></button>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for journey in stories %}
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ journey.title }}</h5>
+          <p class="card-text text-muted small">{{ journey.summary }}</p>
+
+          <div class="accordion" id="demo{{ loop.index }}">
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingDemo{{ loop.index }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDemo{{ loop.index }}" aria-expanded="false" aria-controls="collapseDemo{{ loop.index }}">
+                  View Details
+                </button>
+              </h2>
+              <div id="collapseDemo{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="headingDemo{{ loop.index }}" data-bs-parent="#demo{{ loop.index }}">
+                <div class="accordion-body p-0">
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <div class="p-3 bg-light rounded-top">
+                        <h6 class="mb-2">Demographics</h6>
+                        <ul class="list-unstyled small mb-0">
+                          {% if journey.sex %}<li><strong>Sex:</strong> {{ journey.sex }}</li>{% endif %}
+                          {% if journey.marital_status %}<li><strong>Marital:</strong> {{ journey.marital_status }}</li>{% endif %}
+                          {% if journey.education_level %}<li><strong>Education:</strong> {{ journey.education_level }}</li>{% endif %}
+                          {% if journey.legal_status %}<li><strong>Legal:</strong> {{ journey.legal_status }}</li>{% endif %}
+                          {% if journey.mentions %}
+                          <li><strong>Mentions:</strong>
+                            {% set printed = false %}
+                            {% for m in journey.mentions %}
+                              {% if m %}
+                                {% if printed %}, {% endif %}{{ m }}
+                                {% set printed = true %}
+                              {% endif %}
+                            {% endfor %}
+                          </li>
+                        {% endif %}
+                      </ul>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="p-3 bg-white rounded-top">
+                        <h6 class="mb-2">Travel Info</h6>
+                        <ul class="list-unstyled small mb-0">
+                          {% if journey.departure_date %}<li><strong>Date:</strong> {{ journey.departure_date.strftime('%Y-%m-%d') }}</li>{% endif %}
+                          {% if journey.destination_city %}<li><strong>City:</strong> {{ journey.destination_city }}</li>{% endif %}
+                          {% if journey.motive %}<li><strong>Motive:</strong> {{ journey.motive }}</li>{% endif %}
+                          {% if journey.travel_duration %}<li><strong>Duration:</strong> {{ journey.travel_duration }}</li>{% endif %}
+                          {% if journey.return_plans %}<li><strong>Return:</strong> {{ journey.return_plans }}</li>{% endif %}
+                          {% if journey.methods %}
+                          <li><strong>Travel Methods:</strong>
+                            {% set ns = namespace(seen=[]) %}
+                            {% set first = true %}
+                            {% for m in journey.methods %}
+                              {% if m and m not in ns.seen %}
+                                {% if not first %}, {% endif %}{{ m }}
+                                {% set first = false %}
+                                {% set ns.seen = ns.seen + [m] %}
+                              {% endif %}
+                            {% endfor %}
+                          </li>
+                        {% endif %}
+                      </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <p>No recent journeys available.</p>
+    {% endfor %}
+  </div>
+</section>
+    </div>
 
     <script src="https://code.highcharts.com/highcharts.js"></script>
-
-    <!--Button to download the Word Cloud-->
-    <button class="download">⬇ Download</button>
+    <!-- Highcharts and exporting modules -->
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
     
-      <!-- Replace <section class="map"> with: -->
-    <section class="map">
-      <h2>Geographic Distribution</h2>
-      <div id="geo-chart" style="width:100%; height:400px;"></div>
-    </section>
+    <script>
+      function filterJourneys() {
+          const query = document.getElementById('searchInput').value.toLowerCase();
+          document.querySelectorAll('.list-group-item').forEach(item => {
+          const title = item.querySelector('h5').textContent.toLowerCase();
+          item.style.display = title.includes(query) ? '' : 'none';
+          });
+      }
 
-    <!--Button to download to Download the Geographic Distribution of the worlds.-->
-    <button class="download">⬇ Download</button>
-
-    <!-- Stories section: loop over `stories` passed in -->
-    <section class="stories">
-      <h2><i class="fas fa-book-open me-2"></i> Recent Stories</h2>
-      
-      <section class="search">
-        <input type="text" placeholder="Search for specific story" />
-        <button><i class="fas fa-search"></i></button>
-      </section>
-
-      {% for title, date, first, last in stories %}
-        <div class="story">
-          <h3>{{ title }}</h3>
-          <p><small>{{ date.strftime('%Y-%m-%d') }} by {{ first }} {{ last }}</small></p>
-        </div>
-      {% else %}
-        <p>No recent stories available.</p>
-      {% endfor %}
-    </section>      
-  </div>
-  <!-- At the bottom, after loading Highcharts -->
-  <script>
-      // Parse the JSON-encoded data
       const years   = {{ timeline_years|safe }};
       const counts  = {{ timeline_counts|safe }};
       const wfWords = {{ wf_words|safe }};
       const wfCnts  = {{ wf_counts|safe }};
       const geoC    = {{ geo_countries|safe }};
       const geoCnt  = {{ geo_counts|safe }};
-      
-      // 1) Timeline chart
+
       Highcharts.chart('timeline-chart', {
         chart: { type: 'line' },
-        title: { text: 'Stories per Year' },
+        title: { text: null },
         xAxis: { categories: years },
-        yAxis: { title: { text: 'Number of Stories' } },
-        series: [{ name: 'Stories', data: counts }]
+        yAxis: { title: { text: 'Count' } },
+        series: [{ name: 'Travels', data: counts }]
       });
-      
-      // 2) Word frequency (bar)
+
       Highcharts.chart('wordfreq-chart', {
         chart: { type: 'column' },
-        title: { text: 'Keywords' },
+        title: { text: null },
         xAxis: { categories: wfWords, crosshair: true },
-        yAxis: { title: { text: 'Total Frequency' } },
-        series: [{ name: 'Frequency', data: wfCnts }]
+        yAxis: { title: { text: 'Frequency' } },
+        series: [{ name: 'Keywords', data: wfCnts }]
       });
-      
-      // 3) Geographic distribution (pie)
+
       Highcharts.chart('geo-chart', {
         chart: { type: 'pie' },
-        title: { text: 'Countries of Origin' },
+        title: { text: null },
         series: [{
           name: 'Count',
           colorByPoint: true,
           data: geoC.map((c,i) => ({ name: c, y: geoCnt[i] }))
         }]
       });
+
+      document.addEventListener('DOMContentLoaded', function () {
+        const timelineYears = {{ timeline_years|safe }};
+        const timelineCounts = {{ timeline_counts|safe }};
+        const drilldownData = {{ drilldown_data|safe }};  
+      
+            // Convert timeline data for the main series
+    const mainData = timelineYears.map((year, idx) => ({
+        name: year,
+        y: timelineCounts[idx],
+        drilldown: year
+    }));
+
+    // Format drilldown series
+    const drilldownSeries = Object.entries(drilldownData).map(([year, data]) => ({
+            name: `Travels in ${year}`,
+            id: year,
+            data: data.map(item => [item.name, item.y])
+        }));
+
+        Highcharts.chart('timeline-chart', {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Travels per Year with Monthly Breakdown'
+            },
+            subtitle: {
+                text: 'Click a year to see monthly data'
+            },
+            xAxis: {
+                type: 'category'
+            },
+            yAxis: {
+                title: {
+                    text: 'Number of Travels'
+                }
+            },
+            legend: { enabled: false },
+            plotOptions: {
+                series: {
+                    borderWidth: 0,
+                    dataLabels: {
+                        enabled: true
+                    }
+                }
+            },
+            tooltip: {
+                headerFormat: '<span style="font-size:14px">{series.name}</span><br>',
+                pointFormat: '<span>{point.name}</span>: <b>{point.y}</b><br/>'
+            },
+            series: [{
+                name: "Year",
+                colorByPoint: true,
+                data: mainData
+            }],
+            drilldown: {
+                series: drilldownSeries
+            }
+        });
+    });
+
+      
     </script>
 
     <footer>
-      <div class="footer-content">
-          <div class="logo"><img src="../static/images/Kulturparken.png"></div>
-          <div>
-              <p>House of Emigrants visiting address:</p>
-              <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
-          </div>
-          <div>
-              <p>About the House of Emigrants</p>
-              <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
-              <p>Contact information:</p>
-              <p>+46 470-70 42 00</p>
-              <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
-          </div>
-      </div>
-  </footer>
+        <div class="footer-content">
+            <div class="logo"><img src="../static/images/Kulturparken.png"></div>
+            <div>
+                <p>House of Emigrants visiting address:</p>
+                <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
+            </div>
+            <div>
+                <p>About the House of Emigrants</p>
+                <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
+                <p>Contact information:</p>
+                <p>+46 470-70 42 00</p>
+                <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
+            </div>
+        </div>
+    </footer>
   </body>
 </html>

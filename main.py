@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from psycopg import sql
 import psycopg
 import os
@@ -8,32 +8,30 @@ import subprocess
 app = Flask(__name__)
 app.secret_key = 'a12f9c2b4d5e6f7g8h9i0jklmnopqrst'  # Needed for flashing messages
 
-from flask import send_from_directory
+# --- Multimedia serving ---
 @app.route('/multimedia/<path:filename>')
 def serve_multimedia(filename):
     return send_from_directory('multimedia', filename)
 
-# FILES handlings
+# --- File handling settings ---
 from werkzeug.utils import secure_filename
-UPLOAD_TEXT_FOLDER = '.\\multimedia\\text'
-UPLOAD_IMAGE_FOLDER = '.\\multimedia\\images'
+UPLOAD_TEXT_FOLDER = './multimedia/text'
+UPLOAD_IMAGE_FOLDER = './multimedia/images'
 ALLOWED_TEXT_EXTENSIONS = {'txt', 'csv'}
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
 app.config['UPLOAD_TEXT_FOLDER'] = UPLOAD_TEXT_FOLDER
 app.config['UPLOAD_IMAGE_FOLDER'] = UPLOAD_IMAGE_FOLDER
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
+# --- Delete file endpoint ---
 @app.route('/delete-file', methods=['POST'])
 def delete_file():
-    # require login
     if 'admin_id' not in session:
         flash('Login required.', 'danger')
         return redirect(url_for('login'))
 
-    # path is like "text/filename.txt" or "images/photo.png"
     rel_path = request.form.get('file_path')
     full_path = os.path.join('multimedia', rel_path)
 
@@ -47,7 +45,7 @@ def delete_file():
 
     return redirect(url_for('upload_tool'))
 
-
+# --- Replace file endpoint ---
 @app.route('/replace-file', methods=['POST'])
 def replace_file():
     if 'admin_id' not in session:
@@ -61,10 +59,8 @@ def replace_file():
         flash('No replacement file selected.', 'warning')
         return redirect(url_for('upload_tool'))
 
-    # overwrite the original
     full_orig = os.path.join('multimedia', orig_path)
     try:
-        # optional: check extension matches orig_path’s extension
         new_file.save(full_orig)
         flash(f"Replaced {orig_path}", 'success')
     except Exception as e:
@@ -72,7 +68,7 @@ def replace_file():
 
     return redirect(url_for('upload_tool'))
 
-# Database connection settings
+# --- Database connection settings ---
 DB_NAME = 'house_of_emigrants'
 DB_USER = 'postgres'
 DB_PASS = '666'
@@ -80,15 +76,15 @@ DB_HOST = 'localhost'
 DB_PORT = '5432'
 
 def get_db_connection():
-    conn = psycopg.connect(
+    return psycopg.connect(
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASS,
         host=DB_HOST,
         port=DB_PORT
     )
-    return conn
 
+# --- Routes ---
 @app.route('/')
 def homepage():
     return render_template('index.html')
@@ -98,22 +94,15 @@ def login():
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         password = request.form['password']
-        print(email, " ", password)
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # TODO: Make it work so that autofill is not a problem.
-        
-        query = sql.SQL("SELECT * FROM admins WHERE email = %s")
-        cur.execute(query, (email.lower(),))
-        conn.commit()
+        query = sql.SQL("SELECT id_admin, email, password FROM admins WHERE email = %s")
+        cur.execute(query, (email,))
         admin = cur.fetchone()
-        print(admin)
-        
         cur.close()
         conn.close()
 
-        # admin[2] = password (plaintext now)
         if admin and admin[2] == password:
             session['admin_id'] = admin[0]
             session['admin_email'] = admin[1]
@@ -139,63 +128,73 @@ def data_exploration():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 1) Timeline: count of relatos per year
-    cur.execute("""
-    SELECT
-        EXTRACT(YEAR FROM fecha_relato)::INT AS year,
-        COUNT(*) AS total
-    FROM relatos_emigracion
-    GROUP BY year
-    ORDER BY year;
-    """)
+    # 1) Timeline: viajes por año (usando la función almacenada)
+    cur.execute("SELECT * FROM get_yearly_travels();")
     timeline = cur.fetchall()
 
-    # 2) Word frequency: top 10 palabras by total frecuencia
-    cur.execute("""
-      SELECT pk.palabra, SUM(rp.frecuencia) AS freq
-      FROM Relatos_Palabras rp
-      JOIN Palabras_Clave pk ON rp.palabra_clave_id = pk.palabra_clave_id
-      GROUP BY pk.palabra
-      ORDER BY freq DESC;
-    """)
-    word_freq = cur.fetchall()  # [('migrar', 50), ('trabajo', 42), ...]
+    # 1b) Drilldown: viajes por mes para cada año (usando la función almacenada)
+    cur.execute("SELECT * FROM get_monthly_travels();")
+    monthly = cur.fetchall()
 
-    # 3) Geographic distribution: count personas by country
-    cur.execute("""
-      SELECT pais_origen, COUNT(*) AS cnt
-      FROM Personas
-      GROUP BY pais_origen
-      ORDER BY cnt DESC;
-    """)
-    geo = cur.fetchall()  # [('Sweden', 100), ('Mexico', 80), ...]
+    # Construcción del JSON para drilldown
+    from collections import defaultdict
+    drilldown_data = defaultdict(list)
+    for year, month, _, count in monthly:
+        drilldown_data[int(year)].append({"name": month, "y": count})
+    drilldown_data = dict(drilldown_data)
 
-    # 4) Recent stories: pull last 3 relatos with person info
-    cur.execute("""
-      SELECT r.titulo_relato, r.fecha_relato, p.nombre, p.apellido
-      FROM Relatos_Emigracion r
-      JOIN Personas p ON r.persona_id = p.persona_id
-      ORDER BY r.fecha_relato DESC;
-    """)
-    stories = cur.fetchall()  # [('Title1', date1, 'Jane', 'Doe'), ...]
+    # 2) Top keywords (usando la función almacenada)
+    cur.execute("SELECT * FROM get_top_keywords(%s);", (10,))
+    word_freq = cur.fetchall()
+
+    # 3) Geo distribution por ciudad (usando la función almacenada)
+    cur.execute("SELECT * FROM get_city_distribution();")
+    geo = cur.fetchall()
+
+    # 4) Recent stories with full details (usando la función almacenada)
+    cur.execute("SELECT * FROM get_story_details();")
+    recent = cur.fetchall()
 
     cur.close()
     conn.close()
 
-    # Turn into JSON-friendly structures
+    # unpack the three chart datasets
     timeline_years, timeline_counts = zip(*timeline) if timeline else ([], [])
-    wf_words, wf_counts           = zip(*word_freq) if word_freq else ([], [])
-    geo_countries, geo_counts     = zip(*geo) if geo else ([], [])
+    wf_words, wf_counts             = zip(*word_freq) if word_freq else ([], [])
+    geo_countries, geo_counts       = zip(*geo)      if geo       else ([], [])
+
+    # build a list of dicts for rendering
+    stories = []
+    for row in recent:
+        stories.append({
+            'title':              row[0],
+            'summary':            row[1],
+            'main_first':         row[2],
+            'main_last':          row[3],
+            'sex':                row[4],
+            'marital_status':     row[5],
+            'education_level':    row[6],
+            'legal_status':       row[7],
+            'mentions':           row[8] or [],
+            'departure_date':     row[9],
+            'destination_city':   row[10],
+            'destination_country':row[11],
+            'motive':             row[12],
+            'travel_duration':    row[13],
+            'return_plans':       row[14],
+            'methods':            row[15] or []
+        })
 
     return render_template('dataExploration.html',
-        timeline_years   = json.dumps(list(timeline_years)),
-        timeline_counts  = json.dumps(list(timeline_counts)),
+        timeline_years   = json.dumps([row[0] for row in timeline]),
+        timeline_counts  = json.dumps([row[1] for row in timeline]),
+        drilldown_data   = json.dumps(drilldown_data),
         wf_words         = json.dumps(list(wf_words)),
         wf_counts        = json.dumps(list(wf_counts)),
         geo_countries    = json.dumps(list(geo_countries)),
         geo_counts       = json.dumps(list(geo_counts)),
         stories          = stories
     )
-
 
 @app.route('/about')
 def about():
@@ -208,20 +207,10 @@ def upload_tool():
         return redirect(url_for('login'))
 
     files = []
-    # Text files
     for fname in os.listdir(app.config['UPLOAD_TEXT_FOLDER']):
-        files.append({
-            'name': fname,
-            'type': 'text',
-            'path': f'text/{fname}'
-        })
-    # Image files
+        files.append({'name': fname, 'type': 'text', 'path': f'text/{fname}'})
     for fname in os.listdir(app.config['UPLOAD_IMAGE_FOLDER']):
-        files.append({
-            'name': fname,
-            'type': 'image',
-            'path': f'images/{fname}'
-        })
+        files.append({'name': fname, 'type': 'image', 'path': f'images/{fname}'})
     return render_template('uploadTool.html', files=files)
 
 @app.route('/upload', methods=['POST'])
@@ -231,7 +220,7 @@ def upload_file():
         return redirect(url_for('login'))
 
     uploaded_files = request.files.getlist('files')
-    upload_type    = request.form.get('type')  # 'text' or 'image'
+    upload_type    = request.form.get('type')
 
     if not uploaded_files:
         flash('No file selected!', 'warning')
@@ -240,23 +229,15 @@ def upload_file():
     for file in uploaded_files:
         filename = secure_filename(file.filename)
 
-        # === TEXT FILES ===
         if file and upload_type == 'text' and allowed_file(filename, ALLOWED_TEXT_EXTENSIONS):
             save_path = os.path.join(app.config['UPLOAD_TEXT_FOLDER'], filename)
             file.save(save_path)
-
-            # Immediately invoke your dataExtraction script on that file:
             try:
-                # Assumes dataExtraction.py is in the same directory as main.py
-                subprocess.run(
-                    ['python', 'dataExtraction.py', save_path],
-                    check=True,
-                )
+                subprocess.run(['python', 'dataExtraction.py', save_path], check=True)
                 flash(f"Uploaded and processed text file: {filename}", "success")
             except subprocess.CalledProcessError as e:
                 flash(f"Uploaded {filename}, but processing failed: {e}", "warning")
 
-        # === IMAGE FILES ===
         elif file and upload_type == 'image' and allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS):
             save_path = os.path.join(app.config['UPLOAD_IMAGE_FOLDER'], filename)
             file.save(save_path)
@@ -266,7 +247,6 @@ def upload_file():
             flash(f"File '{filename}' not allowed or wrong type.", "danger")
 
     return redirect(url_for('upload_tool'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)

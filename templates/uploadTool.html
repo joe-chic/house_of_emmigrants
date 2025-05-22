@@ -44,17 +44,17 @@
                     </ul>
                     <ul class="nav-list navbar-nav login">
                         {% if session.get('admin_id') %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
-                                    <div class="user-icon">👤</div>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" href="/logout">Log out</a></li>
-                                </ul>
-                            </li>
-                        {% else %}
-                            <li class="nav-item"><a href="/login" class="nav-link active">Login</a></li>
-                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                👤 {{ session.get('admin_email') }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                    {% endif %}
                     </ul>
                 </div>
             </div>
