@@ -151,11 +151,10 @@ def data_exploration():
 
     # 3) Geo distribution
     cur.execute("""
-        SELECT co.country, COUNT(*) AS cnt
+        SELECT c.city, COUNT(*) AS cnt
         FROM travel_info ti
         JOIN cities c ON ti.destination_city = c.id_city
-        JOIN countries co ON c.id_country = co.id_country
-        GROUP BY co.country
+        GROUP BY c.city
         ORDER BY cnt DESC;
     """)
     geo = cur.fetchall()

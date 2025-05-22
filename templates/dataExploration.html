@@ -39,39 +39,41 @@
   </head>
   <body>
     <header>
-      <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="nav-list navbar-nav me-auto">
-                    <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
-                    {% if session.get('admin_id') %}
-                        <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
-                    {% endif %}
-                    <li class="nav-item"><a href="/dataExploration" class="nav-link active">Dashboard</a></li>
-                    <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
-                </ul>
-                <ul class="nav-list navbar-nav login">
-                    {% if session.get('admin_id') %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                👤 {{ session.get('admin_email') }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                <li><a class="dropdown-item" href="/logout">Log out</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
-                    {% endif %}
-                </ul>                    
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid">
+                <!-- Hamburger Button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+        
+                <!-- Navigation Items -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="nav-list navbar-nav me-auto">
+                        <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                        {% if session.get('admin_id') %}
+                            <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
+                        {% endif %}
+                        <li class="nav-item"><a href="/dataExploration" class="nav-link active">Data Exploration Dashboard</a></li>
+                        <li class="nav-item"><a href="/about" class="nav-link">About & Contact</a></li>
+                    </ul>
+                    <ul class="nav-list navbar-nav login">
+                        {% if session.get('admin_id') %}
+                          <li class="nav-item dropdown">
+                              <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                  👤 {{ session.get('admin_email') }}
+                              </a>
+                              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                  <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                              </ul>
+                          </li>
+                      {% else %}
+                          <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                      {% endif %}
+                    </ul>                    
+                </div>
             </div>
-        </div>
-      </nav>
+        </nav>     
     </header>
 
     <div class="container-fluid p-0">
@@ -87,12 +89,6 @@
         <button class="btn btn-outline-primary">Time Period</button>
         <button class="btn btn-outline-secondary">Reset</button>
       </div>
-
-      <!-- Keywords filter -->
-      <section class="mb-4">
-        <h2>Keyword Selection</h2>
-        <!-- Example: populate from keywords lookup if desired -->
-      </section>
 
       <!-- Timeline -->
       <section class="mb-5">
@@ -110,59 +106,85 @@
 
       <!-- Geographic Distribution -->
       <section class="mb-5">
-        <h2>Destination Countries</h2>
+        <h2>Destination Cities</h2>
         <div id="geo-chart" style="height:400px;"></div>
         <button class="btn btn-sm btn-link mt-2">⬇ Download</button>
       </section>
 
-<!-- Recent Journeys -->
       <!-- Recent Journeys -->
       <section class="stories mb-5">
         <h2><i class="fas fa-route me-2"></i> Recent Journeys</h2>
+
         <div class="input-group mb-3">
-          <input type="text" class="form-control" placeholder="Search journey..." />
-          <button class="btn btn-outline-secondary"><i class="fas fa-search"></i></button>
+          <input id="searchInput" type="text" class="form-control" placeholder="Search journey by title..." onkeyup="filterJourneys()" />
+          <button class="btn btn-outline-secondary" onclick="filterJourneys()"><i class="fas fa-search"></i></button>
         </div>
+
         <div class="list-group">
           {% for journey in stories %}
             <div class="list-group-item mb-4">
+              <!-- Main Info -->
               <h5 class="mb-1">{{ journey.title }}</h5>
-              <small class="text-muted">
-                {% if journey.departure_date %}
-                  {{ journey.departure_date.strftime('%Y-%m-%d') }}
-                {% else %}
-                  Date unknown
-                {% endif %}
-                {% if journey.main_first or journey.main_last %}
-                  | by {{ journey.main_first or '' }} {{ journey.main_last or '' }}
-                {% endif %}
-              </small>
 
-              <div class="mt-3 p-3 bg-light rounded">
-                <h6>Story Summary</h6>
+              <!-- Story Summary -->
+              <div class="mt-2">
                 <p>{{ journey.summary }}</p>
               </div>
 
+              <!-- Demographics -->
               <div class="mt-3 p-3 bg-light rounded">
                 <h6>Demographic Information</h6>
                 <ul class="mb-0">
-                  <li><strong>Sex:</strong> {{ journey.sex or 'N/A' }}</li>
-                  <li><strong>Marital Status:</strong> {{ journey.marital_status or 'N/A' }}</li>
-                  <li><strong>Education Level:</strong> {{ journey.education_level or 'N/A' }}</li>
-                  <li><strong>Legal Status:</strong> {{ journey.legal_status or 'N/A' }}</li>
-                  <li><strong>Mentions:</strong> {{ journey.mentions | join(', ') or 'None' }}</li>
+                  {% if journey.sex %}<li><strong>Sex:</strong> {{ journey.sex }}</li>{% endif %}
+                  {% if journey.marital_status %}<li><strong>Marital Status:</strong> {{ journey.marital_status }}</li>{% endif %}
+                  {% if journey.education_level %}<li><strong>Education Level:</strong> {{ journey.education_level }}</li>{% endif %}
+                  {% if journey.legal_status %}<li><strong>Legal Status:</strong> {{ journey.legal_status }}</li>{% endif %}
+                  {% if journey.mentions %}
+                    <li><strong>Mentions:</strong>
+                      {% set printed = false %}
+                      {% for m in journey.mentions %}
+                        {% if m %}
+                          {% if printed %}, {% endif %}{{ m }}
+                          {% set printed = true %}
+                        {% endif %}
+                      {% endfor %}
+                    </li>
+                  {% endif %}
                 </ul>
               </div>
 
+              <!-- Travel Info -->
               <div class="mt-3 p-3 bg-white border rounded">
                 <h6>Travel Information</h6>
                 <ul class="mb-0">
-                  <li><strong>Departure Date:</strong> {{ journey.departure_date.strftime('%Y-%m-%d') if journey.departure_date else 'Unknown' }}</li>
-                  <li><strong>Destination:</strong> {{ journey.destination_city }}, {{ journey.destination_country }}</li>
-                  <li><strong>Motive:</strong> {{ journey.motive or 'N/A' }}</li>
-                  <li><strong>Duration:</strong> {{ journey.travel_duration or 'N/A' }}</li>
-                  <li><strong>Return Plans:</strong> {{ journey.return_plans or 'N/A' }}</li>
-                  <li><strong>Methods:</strong> {{ journey.methods | join(', ') }}</li>
+                  {% if journey.departure_date %}
+                    <li><strong>Departure Date:</strong> {{ journey.departure_date.strftime('%Y-%m-%d') }}</li>
+                  {% endif %}
+                  {% if journey.destination_city and journey.destination_country %}
+                    <li><strong>Destination:</strong> {{ journey.destination_city }}, {{ journey.destination_country }}</li>
+                  {% endif %}
+                  {% if journey.motive %}
+                    <li><strong>Motive:</strong> {{ journey.motive }}</li>
+                  {% endif %}
+                  {% if journey.travel_duration %}
+                    <li><strong>Duration:</strong> {{ journey.travel_duration }}</li>
+                  {% endif %}
+                  {% if journey.return_plans %}
+                    <li><strong>Return Plans:</strong> {{ journey.return_plans }}</li>
+                  {% endif %}
+                  {% if journey.methods %}
+                    <li><strong>Travel Methods:</strong>
+                      {% set ns = namespace(seen=[]) %}
+                      {% set first = true %}
+                      {% for m in journey.methods %}
+                        {% if m and m not in ns.seen %}
+                          {% if not first %}, {% endif %}{{ m }}
+                          {% set first = false %}
+                          {% set ns.seen = ns.seen + [m] %}
+                        {% endif %}
+                      {% endfor %}
+                    </li>
+                  {% endif %}
                 </ul>
               </div>
             </div>
@@ -175,6 +197,14 @@
 
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script>
+      function filterJourneys() {
+          const query = document.getElementById('searchInput').value.toLowerCase();
+          document.querySelectorAll('.list-group-item').forEach(item => {
+          const title = item.querySelector('h5').textContent.toLowerCase();
+          item.style.display = title.includes(query) ? '' : 'none';
+          });
+      }
+
       const years   = {{ timeline_years|safe }};
       const counts  = {{ timeline_counts|safe }};
       const wfWords = {{ wf_words|safe }};
@@ -209,18 +239,21 @@
       });
     </script>
 
-    <footer class="bg-light py-3 mt-5">
-      <div class="container d-flex justify-content-between">
-        <div><img src="../static/images/Kulturparken.png" alt="Logo" height="50"></div>
-        <div>
-          <p>Vilhelm Mobergs gata 4, 352 29 Växjö</p>
-          <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
+    <footer>
+        <div class="footer-content">
+            <div class="logo"><img src="../static/images/Kulturparken.png"></div>
+            <div>
+                <p>House of Emigrants visiting address:</p>
+                <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
+            </div>
+            <div>
+                <p>About the House of Emigrants</p>
+                <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
+                <p>Contact information:</p>
+                <p>+46 470-70 42 00</p>
+                <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
+            </div>
         </div>
-        <div>
-          <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/" target="_blank">About House of Emigrants</a></p>
-          <p>+46 470-70 42 00</p>
-        </div>
-      </div>
     </footer>
   </body>
 </html>

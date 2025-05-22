@@ -19,35 +19,39 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container-fluid">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <!-- Hamburger Button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+        
+                <!-- Navigation Items -->
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
+                    <ul class="nav-list navbar-nav me-auto">
                         <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
                         {% if session.get('admin_id') %}
                             <li class="nav-item"><a href="/uploadTool" class="nav-link">Upload Files</a></li>
                         {% endif %}
-                        <li class="nav-item"><a href="/dataExploration" class="nav-link">Dashboard</a></li>
+                        <li class="nav-item"><a href="/dataExploration" class="nav-link">Data Exploration Dashboard</a></li>
                         <li class="nav-item"><a href="/about" class="nav-link active">About & Contact</a></li>
                     </ul>
-                    <ul class="navbar-nav">
+                    <ul class="nav-list navbar-nav login">
                         {% if session.get('admin_id') %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    👤 {{ session.get('admin_email') }}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" href="/logout">Log out</a></li>
-                                </ul>
-                            </li>
-                        {% else %}
-                            <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
-                        {% endif %}
-                    </ul>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                👤 {{ session.get('admin_email') }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                    {% endif %}
+                    </ul>                    
                 </div>
             </div>
-        </nav>
+        </nav>     
     </header>
     <main class="container py-5">
         <section class="mb-5">
@@ -73,11 +77,19 @@
                <strong>Address:</strong> Vilhelm Mobergs gata 4, 352 29 Växjö, Sweden</p>
         </section>
     </main>
-    <footer class="bg-light py-3">
-        <div class="container d-flex justify-content-between">
-            <div><img src="../static/images/Kulturparken.png" alt="Kulturparken Logo" height="50"></div>
+    <footer>
+        <div class="footer-content">
+            <div class="logo"><img src="../static/images/Kulturparken.png"></div>
             <div>
-                <p>&copy; 2025 Kulturparken Småland – House of Emigrants</p>
+                <p>House of Emigrants visiting address:</p>
+                <p>Vilhelm Mobergs gata 4, 352 29 Växjö.</p>
+            </div>
+            <div>
+                <p>About the House of Emigrants</p>
+                <p><a href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/">https://www.kulturparkensmaland.se/en/the-house-of-emigrants/</a></p>
+                <p>Contact information:</p>
+                <p>+46 470-70 42 00</p>
+                <p><a href="mailto:information@kulturparkensmaland.se">information@kulturparkensmaland.se</a></p>
             </div>
         </div>
     </footer>
