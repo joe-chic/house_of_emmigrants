@@ -206,8 +206,7 @@ def data_exploration():
           pi_main.id_person, s.sex, ms.status, el.level, ls.status,
           ti.departure_date, c.city, co.country, mm.motive,
           ti.travel_duration, ti.return_plans
-        ORDER BY ti.departure_date DESC
-        LIMIT 3;
+        ORDER BY ti.departure_date DESC;
     """)
     recent = cur.fetchall()
 
