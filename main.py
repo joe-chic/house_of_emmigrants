@@ -128,7 +128,7 @@ def data_exploration():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 1) Timeline
+    # 1) Timeline: viajes por año
     cur.execute("""
         SELECT EXTRACT(YEAR FROM departure_date)::INT AS year,
                COUNT(*) AS total
@@ -138,6 +138,27 @@ def data_exploration():
         ORDER BY year;
     """)
     timeline = cur.fetchall()
+
+    # 1b) Drilldown: viajes por mes para cada año
+    cur.execute("""
+        SELECT
+            EXTRACT(YEAR FROM departure_date)::INT AS year,
+            TO_CHAR(departure_date, 'Mon') AS month,
+            EXTRACT(MONTH FROM departure_date)::INT AS month_order,
+            COUNT(*) AS total
+        FROM travel_info
+        WHERE departure_date IS NOT NULL
+        GROUP BY year, month, month_order
+        ORDER BY year, month_order;
+    """)
+    monthly = cur.fetchall()
+
+    # Construcción del JSON para drilldown
+    from collections import defaultdict
+    drilldown_data = defaultdict(list)
+    for year, month, _, count in monthly:
+        drilldown_data[year].append({"name": month, "y": count})
+    drilldown_data = dict(drilldown_data)
 
     # 2) Top keywords
     cur.execute("""
@@ -240,8 +261,9 @@ def data_exploration():
         })
 
     return render_template('dataExploration.html',
-        timeline_years   = json.dumps(list(timeline_years)),
-        timeline_counts  = json.dumps(list(timeline_counts)),
+        timeline_years   = json.dumps([row[0] for row in timeline]),
+        timeline_counts  = json.dumps([row[1] for row in timeline]),
+        drilldown_data   = json.dumps(drilldown_data),
         wf_words         = json.dumps(list(wf_words)),
         wf_counts        = json.dumps(list(wf_counts)),
         geo_countries    = json.dumps(list(geo_countries)),
