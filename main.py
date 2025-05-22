@@ -128,106 +128,31 @@ def data_exploration():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 1) Timeline: viajes por año
-    cur.execute("""
-        SELECT EXTRACT(YEAR FROM departure_date)::INT AS year,
-               COUNT(*) AS total
-        FROM travel_info
-        WHERE departure_date IS NOT NULL
-        GROUP BY year
-        ORDER BY year;
-    """)
+    # 1) Timeline: viajes por año (usando la función almacenada)
+    cur.execute("SELECT * FROM get_yearly_travels();")
     timeline = cur.fetchall()
 
-    # 1b) Drilldown: viajes por mes para cada año
-    cur.execute("""
-        SELECT
-            EXTRACT(YEAR FROM departure_date)::INT AS year,
-            TO_CHAR(departure_date, 'Mon') AS month,
-            EXTRACT(MONTH FROM departure_date)::INT AS month_order,
-            COUNT(*) AS total
-        FROM travel_info
-        WHERE departure_date IS NOT NULL
-        GROUP BY year, month, month_order
-        ORDER BY year, month_order;
-    """)
+    # 1b) Drilldown: viajes por mes para cada año (usando la función almacenada)
+    cur.execute("SELECT * FROM get_monthly_travels();")
     monthly = cur.fetchall()
 
     # Construcción del JSON para drilldown
     from collections import defaultdict
     drilldown_data = defaultdict(list)
     for year, month, _, count in monthly:
-        drilldown_data[year].append({"name": month, "y": count})
+        drilldown_data[int(year)].append({"name": month, "y": count})
     drilldown_data = dict(drilldown_data)
 
-    # 2) Top keywords
-    cur.execute("""
-        SELECT keyword, COUNT(*) AS freq
-        FROM keywords
-        GROUP BY keyword
-        ORDER BY freq DESC
-        LIMIT 10;
-    """)
+    # 2) Top keywords (usando la función almacenada)
+    cur.execute("SELECT * FROM get_top_keywords(%s);", (10,))
     word_freq = cur.fetchall()
 
-    # 3) Geo distribution
-    cur.execute("""
-        SELECT c.city, COUNT(*) AS cnt
-        FROM travel_info ti
-        JOIN cities c ON ti.destination_city = c.id_city
-        GROUP BY c.city
-        ORDER BY cnt DESC;
-    """)
+    # 3) Geo distribution por ciudad (usando la función almacenada)
+    cur.execute("SELECT * FROM get_city_distribution();")
     geo = cur.fetchall()
 
-    # 4) Recent stories with full details
-    cur.execute("""
-        SELECT
-          tf.story_title,
-          tf.story_summary,
-          -- Demographic for main interviewee
-          pi_main.first_name   AS main_first,
-          pi_main.first_surname AS main_last,
-          s.sex,
-          ms.status           AS marital_status,
-          el.level            AS education_level,
-          ls.status           AS legal_status,
-          -- Mentioned people names
-          ARRAY_AGG(pi_ment.first_name || ' ' || pi_ment.first_surname) 
-            FILTER (WHERE pi_ment.id_person IS NOT NULL) AS mentions,
-          -- Travel info
-          ti.departure_date,
-          c.city              AS destination_city,
-          co.country          AS destination_country,
-          mm.motive,
-          ti.travel_duration,
-          ti.return_plans,
-          ARRAY_AGG(tm.method) AS methods
-        FROM text_files tf
-        -- link main person
-        LEFT JOIN demographic_info di ON tf.id_demography = di.id_demography
-        LEFT JOIN person_info pi_main ON di.id_main_person = pi_main.id_person
-        LEFT JOIN sexes s ON di.id_sex = s.id_sex
-        LEFT JOIN marital_statuses ms ON di.id_marital = ms.id_marital
-        LEFT JOIN education_levels el ON di.id_education = el.id_education
-        LEFT JOIN legal_statuses ls ON di.id_legal = ls.id_legal
-        -- mentioned people
-        LEFT JOIN mention_link ml ON tf.id_demography = ml.id_demography
-        LEFT JOIN person_info pi_ment ON ml.id_person = pi_ment.id_person
-        -- travel info
-        LEFT JOIN travel_info ti ON tf.id_travel = ti.id_travel
-        LEFT JOIN cities c ON ti.destination_city = c.id_city
-        LEFT JOIN countries co ON c.id_country = co.id_country
-        LEFT JOIN motives_migration mm ON ti.id_motive_migration = mm.id_motive
-        LEFT JOIN travel_link tl ON ti.id_travel = tl.id_travel
-        LEFT JOIN travel_methods tm ON tl.id_travel_method = tm.id_travel_method
-        GROUP BY
-          tf.story_title, tf.story_summary,
-          pi_main.id_person, s.sex, ms.status, el.level, ls.status,
-          ti.departure_date, c.city, co.country, mm.motive,
-          ti.travel_duration, ti.return_plans
-        ORDER BY ti.departure_date DESC;
-    """)
+    # 4) Recent stories with full details (usando la función almacenada)
+    cur.execute("SELECT * FROM get_story_details();")
     recent = cur.fetchall()
 
     cur.close()
@@ -236,28 +161,28 @@ def data_exploration():
     # unpack the three chart datasets
     timeline_years, timeline_counts = zip(*timeline) if timeline else ([], [])
     wf_words, wf_counts             = zip(*word_freq) if word_freq else ([], [])
-    geo_countries, geo_counts       = zip(*geo) if geo else ([], [])
+    geo_countries, geo_counts       = zip(*geo)      if geo       else ([], [])
 
     # build a list of dicts for rendering
     stories = []
     for row in recent:
         stories.append({
-            'title':            row[0],
-            'summary':          row[1],
-            'main_first':       row[2],
-            'main_last':        row[3],
-            'sex':              row[4],
-            'marital_status':   row[5],
-            'education_level':  row[6],
-            'legal_status':     row[7],
-            'mentions':         row[8] or [],
-            'departure_date':   row[9],
-            'destination_city': row[10],
-            'destination_country': row[11],
-            'motive':           row[12],
-            'travel_duration':  row[13],
-            'return_plans':     row[14],
-            'methods':          row[15] or []
+            'title':              row[0],
+            'summary':            row[1],
+            'main_first':         row[2],
+            'main_last':          row[3],
+            'sex':                row[4],
+            'marital_status':     row[5],
+            'education_level':    row[6],
+            'legal_status':       row[7],
+            'mentions':           row[8] or [],
+            'departure_date':     row[9],
+            'destination_city':   row[10],
+            'destination_country':row[11],
+            'motive':             row[12],
+            'travel_duration':    row[13],
+            'return_plans':       row[14],
+            'methods':            row[15] or []
         })
 
     return render_template('dataExploration.html',
@@ -270,7 +195,6 @@ def data_exploration():
         geo_counts       = json.dumps(list(geo_counts)),
         stories          = stories
     )
-
 
 @app.route('/about')
 def about():
