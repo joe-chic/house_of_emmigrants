@@ -1,6 +1,7 @@
 import json
 import os
 import torch
+import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 # --- Configuration ---
@@ -17,7 +18,7 @@ USE_QUANTIZATION = False
 MAX_NEW_TOKENS = 1536 # Increased for potentially larger JSON outputs
 
 # --- Prompt Definition (as provided by you) ---
-GEMMA_PROMPT_TEMPLATE = """
+GEMMA_PROMPT_TEMPLATE_REVISED = """
 You will be given a block of text (an interview with a Swedish emigrant). Your task is to extract specific information and provide it as a single, valid JSON object. 
 Do **not** output any extra text, comments, or explanation outside of the JSON object.
 
@@ -197,7 +198,7 @@ def call_gemma_local(interview_text: str, model, tokenizer, device, interview_fi
         #    print(f"[{interview_file_name}] Response text at time of error:\n{response_text}")
         return None
 
-def analyze_interview_file(file_path: str, model, tokenizer, device) -> dict | None:
+def analyze_interview_file(file_path: str, model, tokenizer, device, filename) -> dict | None:
     """
     Reads an interview from a file, analyzes it, and returns structured data.
     """
@@ -216,7 +217,7 @@ def analyze_interview_file(file_path: str, model, tokenizer, device) -> dict | N
         print("Error: File is empty.")
         return None
         
-    json_response_str = call_gemma_local(interview_text, model, tokenizer, device)
+    json_response_str = call_gemma_local(interview_text, model, tokenizer, device, filename)
     
     if json_response_str:
         try:
@@ -248,7 +249,7 @@ if __name__ == "__main__":
             for filename in os.listdir(interview_dir):
                 if filename.endswith(".txt"):
                     file_path = os.path.join(interview_dir, filename)
-                    extracted_info = analyze_interview_file(file_path, model, tokenizer, device)
+                    extracted_info = analyze_interview_file(file_path, model, tokenizer, device, filename)
                     if extracted_info:
                         print(f"\n--- Extracted Information for {filename} ---")
                         for key, value in extracted_info.items():
