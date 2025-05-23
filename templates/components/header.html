@@ -1,0 +1,163 @@
+<!-- Unified Header Component -->
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <!-- Logo -->
+            <a href="/" class="navbar-brand">
+                <img
+                    src="../static/images/Kulturparken.png"
+                    alt="Kulturparken Logo"
+                    height="50"
+                />
+            </a>
+
+            <!-- Hamburger Button -->
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navigation Items -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if touch_mode %}
+                <!-- Touch/Mobile Navigation Structure -->
+                <ul class="nav-list navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link{% if active_page == 'home' %} active{% endif %}">
+                            <i class="fas fa-home me-2"></i>Home
+                        </a>
+                    </li>
+                    {% if session.get('admin_id') %}
+                    <li class="nav-item">
+                        <a href="/uploadTool" class="nav-link{% if active_page == 'upload' %} active{% endif %}">
+                            <i class="fas fa-upload me-2"></i>Upload Files
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a href="/dataExploration" class="nav-link{% if active_page == 'exploration' %} active{% endif %}">
+                            <i class="fas fa-chart-bar me-2"></i>Data Exploration
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/about" class="nav-link{% if active_page == 'about' %} active{% endif %}">
+                            <i class="fas fa-info-circle me-2"></i>About & Contact
+                        </a>
+                    </li>
+                </ul>
+                <ul class="nav-list navbar-nav login">
+                {% else %}
+                <!-- Desktop Navigation Structure -->
+                <div class="navbar-nav me-auto">
+                    <a href="/" class="nav-link{% if active_page == 'home' %} active{% endif %}">
+                        <i class="fas fa-home me-2"></i>Home
+                    </a>
+                    {% if session.get('admin_id') %}
+                    <a href="/uploadTool" class="nav-link{% if active_page == 'upload' %} active{% endif %}">
+                        <i class="fas fa-upload me-2"></i>Upload Files
+                    </a>
+                    {% endif %}
+                    <a href="/dataExploration" class="nav-link{% if active_page == 'exploration' %} active{% endif %}">
+                        <i class="fas fa-chart-bar me-2"></i>Data Exploration
+                    </a>
+                    <a href="/about" class="nav-link{% if active_page == 'about' %} active{% endif %}">
+                        <i class="fas fa-info-circle me-2"></i>About & Contact
+                    </a>
+                </div>
+
+                <div class="navbar-nav">
+                {% endif %}
+                    <!-- Language Selector -->
+                    <div class="nav-item dropdown me-2">
+                        <a
+                            class="nav-link dropdown-toggle"
+                            href="#"
+                            id="languageDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+                            <i class="fas fa-globe me-1"></i>
+                            {{ 'ES' if current_lang == 'es' else 'EN' }}
+                        </a>
+                        <ul
+                            class="dropdown-menu dropdown-menu-end"
+                            aria-labelledby="languageDropdown"
+                        >
+                            {% for code, name in languages.items() %}
+                            <li>
+                                <a
+                                    class="dropdown-item{% if code == current_lang %} active{% endif %}"
+                                    href="/switch_language/{{ code }}"
+                                >
+                                    {{ name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% if session.get('admin_id') %}
+                    <div class="nav-item dropdown">
+                        <a
+                            class="nav-link dropdown-toggle"
+                            href="#"
+                            id="adminDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+                            <i class="fas fa-user-circle me-2"></i>{{
+                            session.get('admin_email') }}
+                        </a>
+                        <ul
+                            class="dropdown-menu dropdown-menu-end"
+                            aria-labelledby="adminDropdown"
+                        >
+                            <li>
+                                <a class="dropdown-item" href="/admin/stories">
+                                    <i class="fas fa-book me-2"></i>Manage Stories
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/admin/admins">
+                                    <i class="fas fa-users-cog me-2"></i>Manage Admins
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <a class="dropdown-item" href="/logout">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Log out
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    {% if touch_mode %}
+                    <li class="nav-item">
+                        <a href="/login" class="nav-link{% if active_page == 'login' %} active{% endif %}">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    </li>
+                    {% else %}
+                    <a href="/login" class="nav-link{% if active_page == 'login' %} active{% endif %}">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                {% if touch_mode %}
+                </ul>
+                {% else %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+</header> 

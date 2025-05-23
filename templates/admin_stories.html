@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>Manage Stories - Admin Panel</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+      crossorigin="anonymous"
+    />
+
+    <!-- Touch UI CSS -->
+    <link rel="stylesheet" href="../static/css/touch-ui.css" />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+          <!-- Logo -->
+          <a href="/" class="navbar-brand">
+            <img
+              src="../static/images/Kulturparken.png"
+              alt="Kulturparken Logo"
+              height="50"
+            />
+          </a>
+
+          <!-- Hamburger Button -->
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <!-- Navigation Items -->
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="nav-list navbar-nav me-auto">
+              <li class="nav-item">
+                <a href="/" class="nav-link"
+                  ><i class="fas fa-home me-2"></i>Home</a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/uploadTool" class="nav-link"
+                  ><i class="fas fa-upload me-2"></i>Upload Files</a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/dataExploration" class="nav-link"
+                  ><i class="fas fa-chart-bar me-2"></i>Data Exploration</a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/about" class="nav-link"
+                  ><i class="fas fa-info-circle me-2"></i>About & Contact</a
+                >
+              </li>
+            </ul>
+            <ul class="nav-list navbar-nav login">
+              <!-- Language Selector -->
+              <li class="nav-item dropdown me-2">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="languageDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fas fa-globe me-1"></i>
+                  {{ 'ES' if current_lang == 'es' else 'EN' }}
+                </a>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="languageDropdown"
+                >
+                  {% for code, name in languages.items() %}
+                  <li>
+                    <a
+                      class="dropdown-item{% if code == current_lang %} active{% endif %}"
+                      href="/switch_language/{{ code }}"
+                    >
+                      {{ name }}
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </li>
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="adminDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fas fa-user-circle me-2"></i>{{
+                  session.get('admin_email') }}
+                </a>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="adminDropdown"
+                >
+                  <li>
+                    <a class="dropdown-item" href="/admin/stories"
+                      ><i class="fas fa-book me-2"></i>Manage Stories</a
+                    >
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="/admin/admins"
+                      ><i class="fas fa-users-cog me-2"></i>Manage Admins</a
+                    >
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <a class="dropdown-item" href="/logout"
+                      ><i class="fas fa-sign-out-alt me-2"></i>Log out</a
+                    >
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Page Header -->
+    <section
+      class="touch-section"
+      style="
+        padding-top: 20px;
+        padding-bottom: 20px;
+        background-color: var(--background-alt);
+      "
+    >
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1><i class="fas fa-book me-2"></i>Manage Stories</h1>
+            <p class="lead">Create, edit, and manage emigrant stories</p>
+          </div>
+          <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="/admin/stories/create" class="touch-button">
+              <i class="fas fa-plus me-2"></i>New Story
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container py-4">
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <!-- Stories Table -->
+      <section class="touch-section">
+        <div class="dashboard-card">
+          <h2 class="mb-4">
+            <i class="fas fa-list me-2"></i>All Stories ({{ stories|length }})
+          </h2>
+
+          {% if stories %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Person</th>
+                  <th>Destination</th>
+                  <th>Motive</th>
+                  <th>Created</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for story in stories %}
+                <tr>
+                  <td>{{ story[0] }}</td>
+                  <td>
+                    <strong>{{ story[1] }}</strong>
+                    <br />
+                    <small class="text-muted"
+                      >{{ story[2][:100] }}{% if story[2]|length > 100 %}...{%
+                      endif %}</small
+                    >
+                  </td>
+                  <td>{{ story[3] }} {{ story[4] }}</td>
+                  <td>{{ story[8] }}, {{ story[9] }}</td>
+                  <td>{{ story[10] }}</td>
+                  <td>
+                    {{ story[13].strftime('%Y-%m-%d') if story[13] else 'N/A' }}
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group" role="group">
+                      <a
+                        href="/admin/stories/edit/{{ story[0] }}"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Edit"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        onclick="confirmDelete({{ story[0] }}, '{{ story[1] }}')"
+                        title="Delete"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i
+              class="fas fa-info-circle fa-3x mb-3"
+              style="color: var(--text-light)"
+            ></i>
+            <h4>No stories found</h4>
+            <p class="text-muted">
+              Start by creating your first emigrant story.
+            </p>
+            <a href="/admin/stories/create" class="touch-button">
+              <i class="fas fa-plus me-2"></i>Create First Story
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+      class="modal fade"
+      id="deleteModal"
+      tabindex="-1"
+      aria-labelledby="deleteModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">
+              <i class="fas fa-exclamation-triangle text-warning me-2"></i
+              >Confirm Delete
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete the story:</p>
+            <p><strong id="storyTitle"></strong></p>
+            <p class="text-danger">This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <form id="deleteForm" method="POST" style="display: inline">
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Delete Story
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="logo">
+            <img
+              src="../static/images/Kulturparken.png"
+              alt="Kulturparken Logo"
+            />
+          </div>
+          <div>
+            <h4>Visit Us</h4>
+            <p>House of Emigrants</p>
+            <p>Vilhelm Mobergs gata 4, 352 29 Växjö</p>
+            <p><i class="fas fa-phone me-2"></i>+46 470-70 42 00</p>
+          </div>
+          <div>
+            <h4>Learn More</h4>
+            <p>
+              <a
+                href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/"
+                >Official Website</a
+              >
+            </p>
+            <p>
+              <a href="mailto:information@kulturparkensmaland.se"
+                ><i class="fas fa-envelope me-2"></i>Email Us</a
+              >
+            </p>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <p>&copy; 2025 House of Emigrants. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      function confirmDelete(storyId, storyTitle) {
+        document.getElementById("storyTitle").textContent = storyTitle;
+        document.getElementById("deleteForm").action =
+          "/admin/stories/delete/" + storyId;
+
+        var deleteModal = new bootstrap.Modal(
+          document.getElementById("deleteModal")
+        );
+        deleteModal.show();
+      }
+    </script>
+  </body>
+</html>
