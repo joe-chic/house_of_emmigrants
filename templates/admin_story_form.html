@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>{{ 'Edit' if action == 'edit' else 'Create' }} Story - Admin Panel</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+      crossorigin="anonymous"
+    />
+
+    <!-- Touch UI CSS -->
+    <link rel="stylesheet" href="../static/css/touch-ui.css" />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+          <!-- Logo -->
+          <a href="/" class="navbar-brand">
+            <img
+              src="../static/images/Kulturparken.png"
+              alt="Kulturparken Logo"
+              height="50"
+            />
+          </a>
+
+          <!-- Hamburger Button -->
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <!-- Navigation Items -->
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="nav-list navbar-nav me-auto">
+              <li class="nav-item">
+                <a href="/" class="nav-link"
+                  ><i class="fas fa-home me-2"></i>Home</a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/uploadTool" class="nav-link"
+                  ><i class="fas fa-upload me-2"></i>Upload Files</a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/dataExploration" class="nav-link"
+                  ><i class="fas fa-chart-bar me-2"></i>Data Exploration</a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/about" class="nav-link"
+                  ><i class="fas fa-info-circle me-2"></i>About & Contact</a
+                >
+              </li>
+            </ul>
+            <ul class="nav-list navbar-nav login">
+              <!-- Language Selector -->
+              <li class="nav-item dropdown me-2">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="languageDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fas fa-globe me-1"></i>
+                  {{ 'ES' if current_lang == 'es' else 'EN' }}
+                </a>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="languageDropdown"
+                >
+                  {% for code, name in languages.items() %}
+                  <li>
+                    <a
+                      class="dropdown-item{% if code == current_lang %} active{% endif %}"
+                      href="/switch_language/{{ code }}"
+                    >
+                      {{ name }}
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </li>
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="adminDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fas fa-user-circle me-2"></i>{{
+                  session.get('admin_email') }}
+                </a>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="adminDropdown"
+                >
+                  <li>
+                    <a class="dropdown-item" href="/admin/stories"
+                      ><i class="fas fa-book me-2"></i>Manage Stories</a
+                    >
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="/admin/admins"
+                      ><i class="fas fa-users-cog me-2"></i>Manage Admins</a
+                    >
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <a class="dropdown-item" href="/logout"
+                      ><i class="fas fa-sign-out-alt me-2"></i>Log out</a
+                    >
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Page Header -->
+    <section
+      class="touch-section"
+      style="
+        padding-top: 20px;
+        padding-bottom: 20px;
+        background-color: var(--background-alt);
+      "
+    >
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1>
+              <i class="fas fa-{{ 'edit' if action == 'edit' else 'plus' }} me-2"></i>
+              {{ 'Edit' if action == 'edit' else 'Create' }} Story
+            </h1>
+            <p class="lead">{{ 'Update an existing' if action == 'edit' else 'Add a new' }} emigrant story</p>
+          </div>
+          <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="/admin/stories" class="touch-button outline">
+              <i class="fas fa-arrow-left me-2"></i>Back to Stories
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container py-4">
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Story Form -->
+      <section class="touch-section">
+        <div class="dashboard-card">
+          <form method="POST">
+            <div class="row">
+              <!-- Basic Information -->
+              <div class="col-md-6">
+                <h3 class="mb-4">
+                  <i class="fas fa-info-circle me-2"></i>Basic Information
+                </h3>
+
+                <div class="mb-3">
+                  <label for="title" class="form-label">
+                    <i class="fas fa-heading me-1"></i>Title *
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="title"
+                    name="title"
+                    value="{{ story[0] if story else '' }}"
+                    required
+                    placeholder="Enter story title"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="summary" class="form-label">
+                    <i class="fas fa-file-text me-1"></i>Summary *
+                  </label>
+                  <textarea
+                    class="form-control"
+                    id="summary"
+                    name="summary"
+                    rows="4"
+                    required
+                    placeholder="Enter story summary"
+                  >{{ story[1] if story else '' }}</textarea>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="main_first" class="form-label">
+                      <i class="fas fa-user me-1"></i>First Name
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="main_first"
+                      name="main_first"
+                      value="{{ story[2] if story else '' }}"
+                      placeholder="First name"
+                    />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="main_last" class="form-label">
+                      <i class="fas fa-user me-1"></i>Last Name
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="main_last"
+                      name="main_last"
+                      value="{{ story[3] if story else '' }}"
+                      placeholder="Last name"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Demographics -->
+              <div class="col-md-6">
+                <h3 class="mb-4">
+                  <i class="fas fa-users me-2"></i>Demographics
+                </h3>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="sex" class="form-label">
+                      <i class="fas fa-venus-mars me-1"></i>Gender
+                    </label>
+                    <select class="form-select" id="sex" name="sex">
+                      <option value="">Select gender</option>
+                      <option value="male" {{ 'selected' if story and story[4] == 'male' else '' }}>Male</option>
+                      <option value="female" {{ 'selected' if story and story[4] == 'female' else '' }}>Female</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="marital_status" class="form-label">
+                      <i class="fas fa-heart me-1"></i>Marital Status
+                    </label>
+                    <select class="form-select" id="marital_status" name="marital_status">
+                      <option value="">Select status</option>
+                      <option value="single" {{ 'selected' if story and story[5] == 'single' else '' }}>Single</option>
+                      <option value="married" {{ 'selected' if story and story[5] == 'married' else '' }}>Married</option>
+                      <option value="widowed" {{ 'selected' if story and story[5] == 'widowed' else '' }}>Widowed</option>
+                      <option value="divorced" {{ 'selected' if story and story[5] == 'divorced' else '' }}>Divorced</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="education_level" class="form-label">
+                    <i class="fas fa-graduation-cap me-1"></i>Education Level
+                  </label>
+                  <select class="form-select" id="education_level" name="education_level">
+                    <option value="">Select education level</option>
+                    <option value="basic" {{ 'selected' if story and story[6] == 'basic' else '' }}>Basic</option>
+                    <option value="medium" {{ 'selected' if story and story[6] == 'medium' else '' }}>Medium</option>
+                    <option value="higher" {{ 'selected' if story and story[6] == 'higher' else '' }}>Higher</option>
+                  </select>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="destination_city" class="form-label">
+                      <i class="fas fa-map-marker-alt me-1"></i>Destination City
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="destination_city"
+                      name="destination_city"
+                      value="{{ story[7] if story else '' }}"
+                      placeholder="Destination city"
+                    />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="destination_country" class="form-label">
+                      <i class="fas fa-globe me-1"></i>Destination Country
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="destination_country"
+                      name="destination_country"
+                      value="{{ story[8] if story else '' }}"
+                      placeholder="Destination country"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Travel Information -->
+            <hr class="my-4">
+            <h3 class="mb-4">
+              <i class="fas fa-plane-departure me-2"></i>Travel Information
+            </h3>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="motive" class="form-label">
+                  <i class="fas fa-question-circle me-1"></i>Motive
+                </label>
+                <select class="form-select" id="motive" name="motive">
+                  <option value="">Select motive</option>
+                  <option value="economic" {{ 'selected' if story and story[9] == 'economic' else '' }}>Economic</option>
+                  <option value="work" {{ 'selected' if story and story[9] == 'work' else '' }}>Work</option>
+                  <option value="family reunion" {{ 'selected' if story and story[9] == 'family reunion' else '' }}>Family Reunion</option>
+                  <option value="political" {{ 'selected' if story and story[9] == 'political' else '' }}>Political</option>
+                  <option value="religious" {{ 'selected' if story and story[9] == 'religious' else '' }}>Religious</option>
+                  <option value="adventure" {{ 'selected' if story and story[9] == 'adventure' else '' }}>Adventure</option>
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="travel_duration" class="form-label">
+                  <i class="fas fa-hourglass-half me-1"></i>Travel Duration
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="travel_duration"
+                  name="travel_duration"
+                  value="{{ story[10] if story else '' }}"
+                  placeholder="e.g., 3 months, 45 days"
+                />
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="return_plans" class="form-label">
+                  <i class="fas fa-undo me-1"></i>Return Plans
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="return_plans"
+                  name="return_plans"
+                  value="{{ story[11] if story else '' }}"
+                  placeholder="e.g., No, After 5 years"
+                />
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <hr class="my-4">
+            <div class="row">
+              <div class="col-12 text-center">
+                <button type="submit" class="touch-button me-3">
+                  <i class="fas fa-save me-2"></i>
+                  {{ 'Update' if action == 'edit' else 'Create' }} Story
+                </button>
+                <a href="/admin/stories" class="touch-button outline">
+                  <i class="fas fa-times me-2"></i>Cancel
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="logo">
+            <img
+              src="../static/images/Kulturparken.png"
+              alt="Kulturparken Logo"
+            />
+          </div>
+          <div>
+            <h4>Visit Us</h4>
+            <p>House of Emigrants</p>
+            <p>Vilhelm Mobergs gata 4, 352 29 Växjö</p>
+            <p><i class="fas fa-phone me-2"></i>+46 470-70 42 00</p>
+          </div>
+          <div>
+            <h4>Learn More</h4>
+            <p>
+              <a
+                href="https://www.kulturparkensmaland.se/en/the-house-of-emigrants/"
+                >Official Website</a
+              >
+            </p>
+            <p>
+              <a href="mailto:information@kulturparkensmaland.se"
+                ><i class="fas fa-envelope me-2"></i>Email Us</a
+              >
+            </p>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <p>&copy; 2025 House of Emigrants. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html> 

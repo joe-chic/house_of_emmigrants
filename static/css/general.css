@@ -101,3 +101,125 @@ footer {
 .footer-content a{
     color:#66705C; /* verde musgo */
 }
+
+/* Mejoras para las historias destacadas y gráficas */
+.story-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 6px 18px rgba(139, 120, 93, 0.15);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(139, 120, 93, 0.2);
+}
+
+.story-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(139, 120, 93, 0.25);
+}
+
+.story-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #5d4e37;
+    margin-bottom: 8px;
+}
+
+.story-summary {
+    font-size: 0.9rem;
+    color: #5a5a5a;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.story-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.story-detail {
+    background: rgba(139, 120, 93, 0.1);
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.story-detail strong {
+    color: #5d4e37;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.chart-content {
+    min-height: 400px !important;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Mejora de visualización de gráficas en Highcharts */
+.highcharts-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.highcharts-root {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Estilo para contenedor de gráficas */
+.chart-card {
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(139, 120, 93, 0.15);
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #fff;
+    border: 1px solid rgba(139, 120, 93, 0.2);
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    box-shadow: 0 12px 25px rgba(139, 120, 93, 0.25);
+    transform: translateY(-3px);
+}
+
+.chart-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #5d4e37;
+    margin-bottom: 8px;
+}
+
+.chart-subtitle {
+    font-size: 0.85rem;
+    color: #8b7355;
+    margin-bottom: 10px;
+}
+
+/* Responsive para historias y gráficas */
+@media (max-width: 768px) {
+    .story-card {
+        padding: 12px;
+    }
+    
+    .story-title {
+        font-size: 1rem;
+    }
+    
+    .story-summary {
+        font-size: 0.85rem;
+    }
+    
+    .story-detail {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+    }
+    
+    .chart-content {
+        min-height: 350px !important;
+    }
+}

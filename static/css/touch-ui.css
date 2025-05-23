@@ -1,0 +1,319 @@
+/* Touch-Optimized UI CSS */
+:root {
+  /* Color palette */
+  --primary: #A75D3C;           /* siena quemado */
+  --primary-light: #C18F34;     /* ocre dorado */
+  --secondary: #66705C;         /* verde musgo */
+  --background: #F4EADC;        /* marfil claro */
+  --background-alt: #EAD3C2;    /* suavizado de marfil claro */
+  --text: #4A4A4A;              /* gris oscuro */
+  --text-light: #6c757d;        /* gris medio */
+  --white: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.1);
+  
+  /* Touch-friendly sizing */
+  --touch-min-height: 48px;     /* Minimum height for touch targets */
+  --touch-min-width: 48px;      /* Minimum width for touch targets */
+  --touch-spacing: 16px;        /* Minimum spacing between touch targets */
+  --section-spacing: 32px;      /* Spacing between major sections */
+  --card-spacing: 24px;         /* Spacing between cards */
+}
+
+/* Global touch-friendly styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--background) !important;
+  margin: 0;
+  padding: 0;
+  /* Better text readability on touch screens */
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Larger text throughout the application */
+h1 { font-size: 2.5rem; margin-bottom: 20px; }
+h2 { font-size: 2rem; margin-bottom: 16px; }
+h3 { font-size: 1.75rem; margin-bottom: 14px; }
+h4 { font-size: 1.5rem; margin-bottom: 12px; }
+h5 { font-size: 1.25rem; margin-bottom: 10px; }
+p { font-size: 1.1rem; line-height: 1.6; }
+
+/* Touch-friendly navbar */
+.navbar {
+  padding: 15px 20px;
+  background-color: var(--background);
+  box-shadow: 0 2px 4px var(--shadow);
+}
+
+.navbar .navbar-toggler {
+  min-height: var(--touch-min-height);
+  min-width: var(--touch-min-width);
+  border: none;
+  padding: 12px;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-list li {
+  margin: 0 15px;
+}
+
+.nav-list a {
+  display: block;
+  padding: 12px 16px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-list a:hover, .nav-list a:active, .active {
+  color: var(--primary) !important;
+  background-color: rgba(167, 93, 60, 0.1);
+}
+
+/* Touch buttons and interactive elements */
+.touch-button {
+  min-height: var(--touch-min-height);
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: none;
+  background-color: var(--primary);
+  color: var(--white);
+  font-weight: bold;
+  box-shadow: 0 2px 4px var(--shadow);
+  transition: transform 0.2s, background-color 0.2s;
+  cursor: pointer;
+}
+
+.touch-button:hover, .touch-button:focus {
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+}
+
+.touch-button:active {
+  transform: translateY(0);
+}
+
+.touch-button.secondary {
+  background-color: var(--secondary);
+}
+
+.touch-button.outline {
+  background-color: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+/* Touch-friendly cards */
+.touch-card {
+  background-color: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 4px 8px var(--shadow);
+  padding: 24px;
+  margin-bottom: var(--card-spacing);
+  transition: transform 0.2s;
+}
+
+.touch-card:hover, .touch-card:focus {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px var(--shadow);
+}
+
+/* Touch-friendly form elements */
+.touch-input {
+  height: var(--touch-min-height);
+  padding: 12px 16px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: 2px solid #ddd;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.touch-input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.touch-select {
+  height: var(--touch-min-height);
+  padding: 12px 16px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: 2px solid #ddd;
+  margin-bottom: 20px;
+  width: 100%;
+  background-color: var(--white);
+}
+
+/* Touch-friendly sections */
+.touch-section {
+  padding: 32px 24px;
+  margin-bottom: var(--section-spacing);
+}
+
+/* Footer styles */
+footer {
+  background-color: var(--background-alt);
+  padding: 32px 24px;
+  margin-top: var(--section-spacing);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-content div {
+  margin-bottom: 16px;
+}
+
+.footer-content a {
+  color: var(--secondary);
+  font-size: 1.1rem;
+  display: block;
+  padding: 8px 0;
+}
+
+.logo img {
+  max-width: 100%;
+  height: auto;
+  max-height: 150px;
+}
+
+/* Interactive elements indicators */
+.interactive {
+  position: relative;
+}
+
+.interactive::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--primary);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.interactive:hover::after, .interactive:focus::after {
+  transform: scaleX(1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .navbar-collapse {
+    padding: 16px;
+  }
+  
+  .nav-list {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .nav-list li {
+    margin: 8px 0;
+  }
+  
+  .nav-list a {
+    padding: 16px;
+    text-align: center;
+  }
+  
+  .touch-section {
+    padding: 24px 16px;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Touch-friendly carousel controls */
+.carousel-control-prev, .carousel-control-next {
+  min-width: var(--touch-min-width);
+  min-height: var(--touch-min-height);
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  margin: 0 16px;
+}
+
+/* Touch-friendly accordion */
+.accordion-button {
+  min-height: var(--touch-min-height);
+  padding: 16px 20px;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Touch-friendly dashboard elements */
+.dashboard-card {
+  background-color: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 4px 8px var(--shadow);
+  padding: 24px;
+  margin-bottom: 24px;
+  height: 100%;
+}
+
+.dashboard-card h3 {
+  color: var(--primary);
+  margin-bottom: 16px;
+}
+
+/* Touch-friendly search bar */
+.search-bar {
+  display: flex;
+  margin-bottom: 24px;
+}
+
+.search-bar input {
+  height: var(--touch-min-height);
+  padding: 12px 16px;
+  font-size: 1.1rem;
+  border-radius: 12px 0 0 12px;
+  border: 2px solid #ddd;
+  border-right: none;
+  flex-grow: 1;
+}
+
+.search-bar button {
+  min-width: var(--touch-min-width);
+  border-radius: 0 12px 12px 0;
+  background-color: var(--primary);
+  color: var(--white);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading indicator */
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+} 
