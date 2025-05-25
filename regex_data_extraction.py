@@ -551,26 +551,8 @@ def process_interview_file(filepath, conn):
 
 # --- main() function and if __name__ == "__main__": block remain the same ---
 def main():
-    # Procesar archivos en multimedia/text
-    text_files_dir = os.path.join("multimedia", "text")
-    if not os.path.isdir(text_files_dir):
-        log_message(f"Error: Directory not found: {text_files_dir}")
-    else:
-        log_message(f"Processing files in directory: {text_files_dir}")
-        db_conn = connect_db()
-        if db_conn:
-            for filename in os.listdir(text_files_dir):
-                if filename.lower().endswith(".txt"):
-                    filepath = os.path.join(text_files_dir, filename)
-                    process_interview_file(filepath, db_conn)
-                else:
-                    log_message(f"Skipping non-txt file: {filename}")
-            
-            db_conn.close()
-            log_message("Text directory processing complete. Database connection closed.")
-
     # Procesar archivos en multimedia/text 2
-    text2_files_dir = os.path.join("multimedia", "text 2")
+    text2_files_dir = os.path.join("multimedia", "texts")
     if not os.path.isdir(text2_files_dir):
         log_message(f"Error: Directory not found: {text2_files_dir}")
     else:
@@ -583,7 +565,7 @@ def main():
                     process_interview_file(filepath, db_conn)
                 else:
                     log_message(f"Skipping non-txt file: {filename}")
-            
+
             db_conn.close()
             log_message("Text 2 directory processing complete. Database connection closed.")
 

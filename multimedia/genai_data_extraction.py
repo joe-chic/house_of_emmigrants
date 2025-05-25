@@ -4,9 +4,9 @@ import re
 import google.generativeai as genai
 
 # --- Configuration ---
-MODEL_NAME = "gemini-2.0-flash-lite" 
-LOW_TEMPERATURE = 0.1 # For more deterministic output
-MAX_OUTPUT_TOKENS = 2048 # Max tokens Gemini will generate for the JSON. Adjust if needed.
+MODEL_NAME = "gemini-2.0-flash-lite"
+LOW_TEMPERATURE = 0 
+MAX_OUTPUT_TOKENS = 2048 # 
 
 # --- Prompt Definition ---
 # This prompt is designed to guide Gemini when using its JSON mode.
@@ -31,7 +31,7 @@ The JSON object must conform to the following structure and field descriptions:
 - "destination_country": (string) The primary country the interviewee emigrated to.
 - "motive_migration": (string) Main reason for migration. Must be one of: "economic opportunity", "family reunification", "religious persecution", "political persecution", "war/conflict", "famine or natural disaster", "education", "adventure", "land ownership", "forced migration", or an empty string if not specified.
 - "travel_method": (array of strings) Travel methods used. Each must be one of: "steamship", "sailboat", "train", "horse-drawn carriage", "on foot", "wagon or cart", "automobile". If none specified or multiple, use an array.
-- "return_plans": (string) Any mention of plans/desires to return.
+- "return_plans": (string) Any mention of plans/desires to return (2 sentences maximum size). 
 - "important_keywords": (array of strings) 5-10 most salient keywords or phrases capturing the core topics.
 
 Use an empty string "" for string fields or an empty array [] for array fields if the information is not found in the text.
@@ -40,55 +40,62 @@ Interview Text:
 {{interview_text}}
 """
 
-def call_gemini_api(interview_text: str, api_key: str) -> str | None:
+def call_gemini_api_with_retry(interview_text: str, api_key: str,
+                               max_retries: int = 5, initial_wait_time: float = 5.0) -> str | None:
     """
-    Calls the Gemini API to extract information from the interview text
-    and attempts to get a structured JSON output.
+    Calls the Gemini API with retry logic for rate limiting.
     """
-    try:
-        genai.configure(api_key=api_key)
+    genai.configure(api_key=api_key) # Configure once if not done globally
 
-        generation_config = genai.types.GenerationConfig(
-            # This forces the model to output JSON.
-            response_mime_type="application/json",
-            temperature=LOW_TEMPERATURE,
-            max_output_tokens=MAX_OUTPUT_TOKENS
-        )
+    generation_config = genai.types.GenerationConfig(
+        response_mime_type="application/json",
+        temperature=LOW_TEMPERATURE,
+        max_output_tokens=MAX_OUTPUT_TOKENS
+    )
 
-        model = genai.GenerativeModel(
-            MODEL_NAME,
-            generation_config=generation_config,
-        )
+    # Use the MODEL_NAME from your successful script
+    model = genai.GenerativeModel(
+        MODEL_NAME, # Ensure this is the model that gave good results
+        generation_config=generation_config
+    )
 
-        full_prompt = GEMINI_JSON_PROMPT_TEMPLATE.replace("{{interview_text}}", interview_text)
+    full_prompt = GEMINI_JSON_PROMPT_TEMPLATE.replace("{{interview_text}}", interview_text)
 
-        print(f"Sending prompt to Gemini (model: {MODEL_NAME})...")
-        # print(f"--- Prompt Start ---\n{full_prompt[:500]}...\n--- Prompt End ---") # For debugging prompt
+    retries = 0
+    current_wait_time = initial_wait_time
 
-        response = model.generate_content(full_prompt)
+    while retries < max_retries:
+        try:
+            print(f"Attempt {retries + 1}/{max_retries}: Sending prompt to Gemini (model: {MODEL_NAME})...")
+            response = model.generate_content(full_prompt)
 
-        # When response_mime_type="application/json", the model output should be directly parseable.
-        # The response.text should contain the JSON string.
-        if response.parts:
-            json_string = response.text # .text directly gives the string content
-            # print(f"--- Raw JSON String from Gemini ---\n{json_string}\n--- End Raw JSON ---") # For debugging
-            return json_string.strip()
+            if response.parts:
+                raw_output = response.text
+                return raw_output.strip()
 
-        print("Gemini API returned no parts in the response.")
-        if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
-            print(f"Prompt Feedback: {response.prompt_feedback}")
-        return None
+            print("Gemini API returned no parts in the response.")
+            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                print(f"Prompt Feedback: {response.prompt_feedback}")
+            return None # Or handle as an error
 
-    except Exception as e:
-        print(f"Error calling Gemini API: {e}")
-        # You might want to check for specific error types, e.g., related to API key, quota, content filtering
-        # if "API key not valid" in str(e):
-        #    print("Please check your GOOGLE_API_KEY environment variable or the key itself.")
-        # if hasattr(e, 'response') and hasattr(e.response, 'prompt_feedback'): 
-        # For some google.api_core.exceptions
-        #    print(f"Prompt Feedback: {e.response.prompt_feedback}")
+        except Exception as e: # Catching a broad exception; more specific is better
+            error_message = str(e).lower()
+            if "rate limit" in error_message or "resource has been exhausted" in error_message or "429" in error_message:
+                retries += 1
+                if retries >= max_retries:
+                    print(f"Max retries reached for rate limit. Error: {e}")
+                    return None
 
-        return None
+                # Exponential backoff with jitter
+                sleep_time = current_wait_time + random.uniform(0, 1)
+                print(f"Rate limit hit. Retrying in {sleep_time:.2f} seconds...")
+                time.sleep(sleep_time)
+                current_wait_time *= 2 # Exponential backoff
+            else:
+                # Not a rate limit error, or a different kind of error
+                print(f"Error calling Gemini API (not a rate limit, or unhandled): {e}")
+                return None
+    return None
 
 def analyze_interview_with_gemini(interview_file_path: str, api_key: str) -> dict | None:
     """
@@ -115,7 +122,7 @@ def analyze_interview_with_gemini(interview_file_path: str, api_key: str) -> dic
     # The SDK/API will error out if the prompt is too long.
     # print(f"Interview text length (chars): {len(interview_text)}")
 
-    json_response_str = call_gemini_api(interview_text, api_key)
+    json_response_str = call_gemini_api_with_retry(interview_text, api_key)
 
     if json_response_str:
         try:
