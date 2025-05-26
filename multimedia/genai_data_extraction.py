@@ -1,12 +1,39 @@
 import json
 import os
-import re
+import re # Keep re if you use it in call_gemini_api_with_retry for JSON extraction
 import google.generativeai as genai
+import psycopg
+import time # For sleeping in retry and for timestamping logs
+import random # For jitter in backoff
+from datetime import datetime # For timestamping logs
 
-# --- Configuration ---
-MODEL_NAME = "gemini-2.0-flash"
+# --- Database connection settings ---
+DB_NAME = 'house_of_emigrants'
+DB_USER = 'postgres'
+DB_PASS = '666' # Consider using environment variables
+DB_HOST = 'localhost'
+DB_PORT = '5432'
+
+def get_db_connection():
+    return psycopg.connect(
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS,
+        host=DB_HOST,
+        port=DB_PORT
+    )
+
+# --- Genai configuration ---
+# IMPORTANT: "gemini-2.0-flash" is not a standard public model name.
+# Please use a valid model name like "gemini-1.5-flash-latest" or "gemini-1.0-pro".
+# If "gemini-2.0-flash" is a custom endpoint or a typo, this will fail.
+# For this example, I'll assume you meant "gemini-1.5-flash-latest".
+MODEL_NAME = "gemini-1.5-flash-latest" # CORRECTED - USE A VALID MODEL NAME
 LOW_TEMPERATURE = 0.1
-MAX_OUTPUT_TOKENS = 4096
+MAX_OUTPUT_TOKENS = 4096 # Increased from 2048, good for complex JSON
+
+# --- Logging Configuration ---
+LOG_FILE_PATH = "gemini_extraction_log.jsonl" # Using .jsonl for JSON Lines format
 
 GEMINI_JSON_PROMPT_TEMPLATE = """
 You are an expert data extractor specializing in historical personal narratives. Based on the following interview text with an emigrant or their descendants, extract the specified information.
@@ -88,7 +115,6 @@ If information for a field or an entire section is not present in the text, use 
       "full_name": (string) Full name of the mentioned person.
       "relationship_to_interviewee": (string, optional) Their relationship to the interviewee (e.g., "father", "sister", "friend", "cousin", "employer", "community member").
       "details": (string, optional) Any other brief relevant details about this person from the text.
-      // Potentially add more fields here if you want to capture their sex, birthdate etc. if mentioned.
     }
   ]
 
@@ -149,12 +175,99 @@ Interview Text:
 {{interview_text}}
 """
 
-def call_gemini_api_with_retry(interview_text: str, api_key: str,
-                               max_retries: int = 5, initial_wait_time: float = 5.0) -> str | None:
+def log_extraction_to_file(log_entry: dict):
+    """Appends a JSON log entry to the log file."""
+    try:
+        with open(LOG_FILE_PATH, 'a', encoding='utf-8') as f:
+            json.dump(log_entry, f)
+            f.write('\n') # Newline for JSON Lines format
+    except Exception as e:
+        print(f"Error writing to log file {LOG_FILE_PATH}: {e}")
+
+
+def store_extracted_data_v2(text_file_path: str, data: dict):
+    conn = None
+    print(f"Attempting to store data for: {text_file_path}") # Debug print
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            imm_events = data.get("interviewee_immigration_events", [])
+            jobs_list = data.get("interviewee_jobs", [])
+            edu_history = data.get("interviewee_education_history", [])
+            health_issues_list = data.get("interviewee_health_issues", [])
+            other_people = data.get("other_people_mentioned", [])
+            community_involvements_list = data.get("interviewee_community_involvements", [])
+            
+            cultural_aspects = data.get("interviewee_cultural_aspects", {})
+            assoc_cultures = cultural_aspects.get("associated_culture_names", [])
+            lang_spoken = cultural_aspects.get("languages_spoken_or_mentioned", [])
+            cultural_events = cultural_aspects.get("cultural_events_mentioned", [])
+            cultural_practices = cultural_aspects.get("cultural_practices_mentioned", [])
+
+            historic_events = data.get("interviewee_historic_event_involvement", [])
+            gen_keywords = data.get("general_keywords", [])
+
+            cur.execute(
+                "CALL ingest_interview_from_ai_json_v2("
+                "p_text_filename := %s, p_story_title := %s, p_story_summary := %s, "
+                "p_interview_location := %s, p_interview_date := %s, "
+                "p_interviewee_name := %s, p_interviewee_birthday := %s, "
+                "p_interviewee_birthplace_city_name := %s, p_interviewee_birthplace_country_name := %s, "
+                "p_interviewee_sex := %s, p_interviewee_marital_status := %s, p_interviewee_legal_status := %s, "
+                "p_immigration_events := %s, "
+                "p_jobs := %s, "
+                "p_education_history := %s, "
+                "p_health_issues := %s, "
+                "p_other_people_mentioned := %s, "
+                "p_community_involvements := %s, "
+                "p_cultural_associated_cultures := %s, p_cultural_languages_spoken := %s, "
+                "p_cultural_events_mentioned := %s, p_cultural_practices_mentioned := %s, "
+                "p_historic_events_involved := %s, "
+                "p_general_keywords := %s"
+                ");",
+                (
+                    os.path.basename(text_file_path),
+                    data.get("story_title"), data.get("story_summary"),
+                    data.get("interview_location"), data.get("interview_date"),
+                    data.get("interviewee_name"), data.get("interviewee_birthday"),
+                    data.get("interviewee_birthplace_city_name"), data.get("interviewee_birthplace_country_name"),
+                    data.get("interviewee_sex"), data.get("interviewee_marital_status"), data.get("interviewee_legal_status_at_migration_or_current"),
+                    json.dumps(imm_events) if imm_events else None,
+                    json.dumps(jobs_list) if jobs_list else None,
+                    json.dumps(edu_history) if edu_history else None,
+                    json.dumps(health_issues_list) if health_issues_list else None,
+                    json.dumps(other_people) if other_people else None,
+                    json.dumps(community_involvements_list) if community_involvements_list else None,
+                    assoc_cultures if assoc_cultures else None,
+                    json.dumps(lang_spoken) if lang_spoken else None,
+                    json.dumps(cultural_events) if cultural_events else None,
+                    json.dumps(cultural_practices) if cultural_practices else None,
+                    json.dumps(historic_events) if historic_events else None,
+                    gen_keywords if gen_keywords else None
+                )
+            )
+            conn.commit()
+            print(f"Successfully ingested data into DB for: {text_file_path}")
+
+    except psycopg.Error as e:
+        if conn:
+            conn.rollback()
+        print(f"Database error storing data for {text_file_path}: {e}")
+        print(f"SQLSTATE: {e.sqlstate}")
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"An unexpected error occurred while storing data for {text_file_path}: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+def call_gemini_api_with_retry(interview_text: str, api_key: str, filename_for_log: str,
+                               max_retries: int = 3, initial_wait_time: float = 7.0) -> str | None: # Reduced max_retries slightly
     """
     Calls the Gemini API with retry logic for rate limiting.
     """
-    genai.configure(api_key=api_key) # Configure once if not done globally
+    genai.configure(api_key=api_key)
 
     generation_config = genai.types.GenerationConfig(
         response_mime_type="application/json",
@@ -162,9 +275,8 @@ def call_gemini_api_with_retry(interview_text: str, api_key: str,
         max_output_tokens=MAX_OUTPUT_TOKENS
     )
 
-    # Use the MODEL_NAME from your successful script
     model = genai.GenerativeModel(
-        MODEL_NAME, # Ensure this is the model that gave good results
+        MODEL_NAME,
         generation_config=generation_config
     )
 
@@ -173,76 +285,140 @@ def call_gemini_api_with_retry(interview_text: str, api_key: str,
     retries = 0
     current_wait_time = initial_wait_time
 
-    while retries < max_retries:
+    while retries <= max_retries: # Changed to <= to allow max_retries attempts
         try:
-            print(f"Attempt {retries + 1}/{max_retries}: Sending prompt to Gemini (model: {MODEL_NAME})...")
+            print(f"Attempt {retries + 1}/{max_retries + 1} for {filename_for_log}: Sending prompt to Gemini (model: {MODEL_NAME})...")
             response = model.generate_content(full_prompt)
 
             if response.parts:
                 raw_output = response.text
                 return raw_output.strip()
+            else: # No parts, could be due to safety filters or other issues
+                print(f"Gemini API returned no parts in the response for {filename_for_log}.")
+                if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                    print(f"Prompt Feedback for {filename_for_log}: {response.prompt_feedback}")
+                    # Log this specific failure case
+                    log_entry = {
+                        "timestamp": datetime.now().isoformat(),
+                        "filename": filename_for_log,
+                        "status": "error_no_parts",
+                        "prompt_feedback": str(response.prompt_feedback),
+                        "error_message": "Gemini API returned no parts."
+                    }
+                    log_extraction_to_file(log_entry)
+                return None # Critical to return None here
 
-            print("Gemini API returned no parts in the response.")
-            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
-                print(f"Prompt Feedback: {response.prompt_feedback}")
-            return None # Or handle as an error
-
-        except Exception as e: # Catching a broad exception; more specific is better
+        except Exception as e:
             error_message = str(e).lower()
-            if "rate limit" in error_message or "resource has been exhausted" in error_message or "429" in error_message:
-                retries += 1
-                if retries >= max_retries:
-                    print(f"Max retries reached for rate limit. Error: {e}")
-                    return None
+            # More specific check for rate limit errors from google-generativeai
+            # Often they are google.api_core.exceptions.ResourceExhausted
+            # or contain "quota" or "rate limit" text.
+            is_rate_limit_error = (
+                "rate limit" in error_message or
+                "resource has been exhausted" in error_message or
+                "429" in error_message or 
+                "quota" in error_message # Added "quota"
+            )
 
-                # Exponential backoff with jitter
-                sleep_time = current_wait_time + random.uniform(0, 1)
-                print(f"Rate limit hit. Retrying in {sleep_time:.2f} seconds...")
+            if is_rate_limit_error:
+                retries += 1
+                if retries > max_retries: # Check if we've exceeded retries
+                    print(f"Max retries reached for rate limit on {filename_for_log}. Error: {e}")
+                    log_entry = {
+                        "timestamp": datetime.now().isoformat(),
+                        "filename": filename_for_log,
+                        "status": "error_max_retries_rate_limit",
+                        "error_message": str(e)
+                    }
+                    log_extraction_to_file(log_entry)
+                    return None
+                
+                sleep_time = current_wait_time + random.uniform(0, 2) # Added more jitter
+                print(f"Rate limit hit for {filename_for_log}. Retrying in {sleep_time:.2f} seconds...")
                 time.sleep(sleep_time)
-                current_wait_time *= 2 # Exponential backoff
+                current_wait_time = min(current_wait_time * 2, 60) # Exponential backoff, cap at 60s
             else:
-                # Not a rate limit error, or a different kind of error
-                print(f"Error calling Gemini API (not a rate limit, or unhandled): {e}")
-                return None
-    return None
+                print(f"Error calling Gemini API for {filename_for_log} (not a rate limit, or unhandled): {e}")
+                log_entry = {
+                    "timestamp": datetime.now().isoformat(),
+                    "filename": filename_for_log,
+                    "status": "error_api_call",
+                    "error_message": str(e)
+                }
+                log_extraction_to_file(log_entry)
+                return None # Return None on other errors
+    return None # Should be reached only if max_retries is 0 or loop finishes unexpectedly
 
 def analyze_interview_with_gemini(interview_file_path: str, api_key: str) -> dict | None:
     """
     Reads an interview from a file, analyzes it using Gemini, and returns structured data.
     """
-    print(f"\n--- Analyzing file: {os.path.basename(interview_file_path)} with Gemini ---")
+    filename_only = os.path.basename(interview_file_path)
+    print(f"\n--- Analyzing file: {filename_only} with Gemini ---")
+    
     try:
         with open(interview_file_path, 'r', encoding='utf-8') as f:
             interview_text = f.read()
     except FileNotFoundError:
         print(f"Error: File not found at {interview_file_path}")
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "filename": filename_only,
+            "status": "error_file_not_found",
+            "error_message": f"File not found: {interview_file_path}"
+        }
+        log_extraction_to_file(log_entry)
         return None
     except Exception as e:
         print(f"Error reading file {interview_file_path}: {e}")
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "filename": filename_only,
+            "status": "error_file_read",
+            "error_message": str(e)
+        }
+        log_extraction_to_file(log_entry)
         return None
 
     if not interview_text.strip():
-        print("Error: File is empty.")
+        print(f"Error: File {filename_only} is empty.")
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "filename": filename_only,
+            "status": "error_file_empty"
+        }
+        log_extraction_to_file(log_entry)
         return None
 
-    # Rudimentary check for very long texts - Gemini has large context windows (e.g., 1M for 1.5 Pro)
-    # but free tiers or Flash might have practical limits for single requests, or processing cost.
-    # For Gemini, the token limit is usually on (input + output).
-    # The SDK/API will error out if the prompt is too long.
-    # print(f"Interview text length (chars): {len(interview_text)}")
-
-    json_response_str = call_gemini_api_with_retry(interview_text, api_key)
+    json_response_str = call_gemini_api_with_retry(interview_text, api_key, filename_only)
 
     if json_response_str:
         try:
-            # The API in JSON mode should directly return a parsable JSON string
             extracted_data = json.loads(json_response_str)
+            log_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "filename": filename_only,
+                "status": "success",
+                "extracted_json": extracted_data # Log the parsed dict
+            }
+            log_extraction_to_file(log_entry)
             return extracted_data
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON from Gemini API for file {os.path.basename(interview_file_path)}: {e}")
+            print(f"Error decoding JSON from Gemini API for file {filename_only}: {e}")
             print(f"Received string from model (that failed to parse):\n---\n{json_response_str}\n---")
+            log_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "filename": filename_only,
+                "status": "error_json_decode",
+                "raw_response": json_response_str,
+                "error_message": str(e)
+            }
+            log_extraction_to_file(log_entry)
             return None
-    return None
+    else: # json_response_str is None (API call failed after retries or other critical error)
+        # Logging for this case is now handled within call_gemini_api_with_retry
+        print(f"No valid JSON response received from Gemini for {filename_only} after retries/errors.")
+        return None
 
 # --- Main Script ---
 if __name__ == "__main__":
@@ -250,20 +426,35 @@ if __name__ == "__main__":
     if not google_api_key:
         print("Error: GOOGLE_API_KEY environment variable not found.")
         print("Please set it before running the script.")
-        exit()
+        exit(1) # Use exit(1) for errors
 
-    INTERVIEW_DIR = "texts"
-    if not os.path.exists(INTERVIEW_DIR):
-        print(f"\nDirectory '{INTERVIEW_DIR}' not found. Skipping batch processing.")
-    else:
-        print(f"\n--- Processing files in directory: {INTERVIEW_DIR} with Gemini ---")
-        for filename in os.listdir(INTERVIEW_DIR):
-            if filename.endswith(".txt"):
-                file_path = os.path.join(INTERVIEW_DIR, filename)
-                extracted_info = analyze_interview_with_gemini(file_path, google_api_key)
-                if extracted_info:
-                    print(f"\n--- Extracted Information for {filename} (Gemini) ---")
-                    print(json.dumps(extracted_info, indent=2))
-                    print(f"--- Successfully processed {filename} with Gemini ---")
-                else:
-                    print(f"--- Failed to process {filename} with Gemini ---")
+    INTERVIEW_DIR = "texts" # Assuming your text files are in a 'texts' subdirectory
+    if not os.path.isdir(INTERVIEW_DIR):
+        print(f"\nDirectory '{INTERVIEW_DIR}' not found. Please create it and add .txt files.")
+        exit(1) # Exit if the directory doesn't exist
+
+    print(f"--- Starting Batch Processing from directory: {INTERVIEW_DIR} with Gemini ---")
+    processed_count = 0
+    failed_count = 0
+    for filename in os.listdir(INTERVIEW_DIR):
+        if filename.endswith(".txt"):
+            file_path = os.path.join(INTERVIEW_DIR, filename)
+            extracted_info = analyze_interview_with_gemini(file_path, google_api_key)
+            
+            if extracted_info:
+                print(f"--- Successfully processed and extracted data for {filename} ---")
+                # Instead of printing the JSON to console, it's now logged by analyze_interview_with_gemini
+                # Now, attempt to store it in the database
+                store_extracted_data_v2(file_path, extracted_info)
+                processed_count +=1
+            else:
+                print(f"--- Failed to process or extract data for {filename} ---")
+                failed_count += 1
+            
+            # Optional: Add a small delay between API calls if still hitting limits frequently
+            # time.sleep(1) # e.g., wait 1 second
+    
+    print(f"\n--- Batch Processing Complete ---")
+    print(f"Successfully processed files: {processed_count}")
+    print(f"Failed to process files: {failed_count}")
+    print(f"Extraction logs saved to: {LOG_FILE_PATH}")

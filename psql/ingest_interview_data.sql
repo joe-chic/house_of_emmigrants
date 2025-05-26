@@ -1,162 +1,285 @@
-CREATE OR REPLACE PROCEDURE ingest_interview_data(
-    -- From text_files
-    p_text_file_path TEXT, -- You'll need to pass the path of the text file being processed
+CREATE OR REPLACE PROCEDURE ingest_interview_from_ai_json_v2(
+    -- I. Interview Meta-Information
+    p_text_filename TEXT,
     p_story_title TEXT,
     p_story_summary TEXT,
-    -- Interviewee details
-    p_first_name_interviewed TEXT,
-    p_first_surname_interviewed TEXT,
-    p_sex_interviewed TEXT,
-    p_marital_status_interviewed TEXT,
-    p_education_level_interviewed TEXT,
-    p_occupation_interviewed TEXT, -- Assuming this is a TEXT field for now in demographic_info
-    p_religion_interviewed TEXT,   -- Assuming this is a TEXT field for now in demographic_info
-    p_legal_status_interviewed TEXT,
-    -- Other mentioned people
-    p_fullname_others TEXT[], -- Array of "FirstName LastName"
-    -- Travel details
-    p_departure_date TEXT, -- Needs to be parsed to DATE
-    p_destination_country TEXT,
-    p_motive_migration TEXT,
-    p_travel_methods TEXT[], -- Array of travel method names
-    p_return_plans TEXT,
-    p_travel_duration TEXT, -- Assuming this is a TEXT field in travel_info
-    -- Keywords
-    p_important_keywords TEXT[],
-    -- OUT parameters for generated IDs (optional, but useful for confirmation)
-    OUT p_created_text_id UUID,
-    OUT p_created_person_id UUID,
-    OUT p_created_demography_id UUID,
-    OUT p_created_travel_id UUID
+    p_interview_location TEXT,
+    p_interview_date TEXT,
+
+    -- II. Primary Interviewee Information
+    p_interviewee_name TEXT,
+    p_interviewee_birthday TEXT,
+    p_interviewee_birthplace_city_name TEXT,
+    p_interviewee_birthplace_country_name TEXT,
+    p_interviewee_sex TEXT,
+    p_interviewee_marital_status TEXT,
+    p_interviewee_legal_status TEXT,
+
+    -- III. Interviewee's Immigration Event(s)
+    p_immigration_events JSONB, -- Array of immigration event objects
+
+    -- IV. Interviewee's Job(s)
+    p_jobs JSONB, -- Array of job objects
+
+    -- V. Interviewee's Education
+    p_education_history JSONB, -- Array of education objects
+
+    -- VI. Health - Placeholder
+    p_health_issues JSONB, -- Array of health issue objects
+
+    -- VII. Other People Mentioned
+    p_other_people_mentioned JSONB,
+
+    -- VIII. Community - Placeholder
+    p_community_involvements JSONB,
+
+    -- IX. Cultural Aspects
+    p_cultural_associated_cultures TEXT[],
+    p_cultural_languages_spoken JSONB,
+    p_cultural_events_mentioned JSONB, -- Array of cultural event objects
+    p_cultural_practices_mentioned JSONB, -- Array of cultural practice objects
+
+
+    -- X. Historic Event Involvement
+    p_historic_events_involved JSONB,
+
+    -- XI. General Keywords
+    p_general_keywords TEXT[]
 )
 LANGUAGE plpgsql AS $$
 DECLARE
-    v_main_person_id UUID;
-    v_sex_id UUID;
-    v_marital_id UUID;
-    v_education_id UUID;
-    v_legal_id UUID;
-    v_demography_id UUID;
-    v_travel_id UUID;
-    v_country_id UUID;
-    v_city_id UUID;
-    v_motive_id UUID;
-    v_text_id UUID;
-    v_departure_parsed_date DATE;
-    mentioned_person_name TEXT;
-    mentioned_person_id UUID;
-    travel_method_name TEXT;
-    travel_method_id UUID;
-    keyword_text TEXT;
-    name_parts TEXT[];
-    mentioned_first_name TEXT;
-    mentioned_last_name TEXT;
+    v_interviewee_id INT;
+    v_text_file_id INT;
+    v_parsed_interview_date DATE;
+
+    -- Loop variables for arrays
+    imm_event RECORD;
+    v_imm_origin_country_id INT;
+    v_imm_origin_city_id INT;
+    v_imm_dest_country_id INT;
+    v_imm_dest_city_id INT;
+    v_imm_travel_type_id INT;
+    v_imm_entry_port_id INT;
+    v_imm_arrival_port_id INT;
+    v_parsed_imm_date DATE;
+
+    job_record RECORD;
+    v_job_edu_level_id INT;
+
+    edu_record RECORD;
+    v_edu_school_id INT;
+    v_edu_level_id INT;
+    
+    other_person_record RECORD;
+    v_other_person_id INT;
+    v_relationship_id INT;
+
+    culture_name_item TEXT;
+    v_culture_id INT;
+
+    language_record RECORD;
+    v_language_id INT;
+    v_person_main_culture_id INT; -- To link language if no specific culture context
+
+    historic_event_record RECORD;
+    v_historic_event_id INT;
+
+    keyword_item TEXT;
+    
+    -- Placeholder for more complex loops
+    health_record RECORD;
+    treatment_record RECORD;
+    community_record RECORD;
+    social_activity_item TEXT;
+    cultural_event_record RECORD;
+    cultural_practice_record RECORD;
+
+
 BEGIN
-    -- Ensure this all runs in a transaction (handled by the calling Python code)
+    -- === II. Create/Find Primary Interviewee ===
+    v_interviewee_id := find_or_create_person(
+        p_full_name := p_interviewee_name,
+        p_birthday := p_interviewee_birthday,
+        p_birthplace_city_name := p_interviewee_birthplace_city_name,
+        p_birthplace_country_name := p_interviewee_birthplace_country_name,
+        p_sex_name := p_interviewee_sex,
+        p_marital_status_name := p_interviewee_marital_status,
+        p_legal_status_name := p_interviewee_legal_status
+    );
 
-    -- 1. Get/Create main interviewee person_info
-    v_main_person_id := get_or_create_person_id(p_first_name_interviewed, p_first_surname_interviewed);
-    p_created_person_id := v_main_person_id;
-
-    -- 2. Get IDs from lookup tables for demographic_info
-    v_sex_id := get_sex_id(p_sex_interviewed);
-    v_marital_id := get_marital_status_id(p_marital_status_interviewed);
-    v_education_id := get_education_level_id(p_education_level_interviewed);
-    v_legal_id := get_legal_status_id(p_legal_status_interviewed);
-    -- Note: p_occupation_interviewed and p_religion_interviewed are inserted as text directly for now.
-    -- If you have lookup tables for them, you'd create helper functions like the ones above.
-
-    -- 3. Insert demographic_info
-    IF v_main_person_id IS NOT NULL THEN
-        INSERT INTO demographic_info (
-            id_main_person, id_sex, id_marital, id_education, id_legal
-            -- Add occupation and religion text fields if they exist in your demographic_info table
-            -- For example: , occupation_text, religion_text 
-        ) VALUES (
-            v_main_person_id, v_sex_id, v_marital_id, v_education_id, v_legal_id
-            -- , p_occupation_interviewed, p_religion_interviewed 
-        ) RETURNING id_demography INTO v_demography_id;
-        p_created_demography_id := v_demography_id;
+    IF v_interviewee_id IS NULL THEN
+        RAISE NOTICE 'Failed to create or find primary interviewee: %', p_interviewee_name;
+        RETURN; -- Exit if no primary interviewee
     END IF;
 
-    -- 4. Handle mentioned people (fullname_others)
-    IF v_demography_id IS NOT NULL AND p_fullname_others IS NOT NULL THEN
-        FOREACH mentioned_person_name IN ARRAY p_fullname_others LOOP
-            IF mentioned_person_name <> '' THEN
-                -- Basic split of "FirstName LastName" - might need more robust parsing
-                name_parts := string_to_array(trim(mentioned_person_name), ' ');
-                mentioned_first_name := name_parts[1];
-                IF array_length(name_parts, 1) > 1 THEN
-                    mentioned_last_name := array_to_string(name_parts[2:array_length(name_parts, 1)], ' ');
+    -- === I. Insert Text File Meta-Information ===
+    BEGIN v_parsed_interview_date := p_interview_date::DATE; EXCEPTION WHEN OTHERS THEN v_parsed_interview_date := NULL; END;
+    
+    INSERT INTO text_files (id_people, filename, interview_location, interview_date, story_title, story_summary)
+    VALUES (v_interviewee_id, p_text_filename, p_interview_location, v_parsed_interview_date, p_story_title, p_story_summary)
+    RETURNING id_text INTO v_text_file_id;
+
+    -- === III. Insert Immigration Event(s) for Interviewee ===
+    IF p_immigration_events IS NOT NULL AND jsonb_array_length(p_immigration_events) > 0 THEN
+        FOR imm_event IN SELECT * FROM jsonb_to_recordset(p_immigration_events) AS x(
+            immigration_date TEXT, reason_immigration TEXT,
+            origin_city_name TEXT, origin_country_name TEXT,
+            destination_city_name TEXT, destination_country_name TEXT,
+            travel_type_name TEXT, entry_port_name TEXT, arrival_port_name TEXT,
+            return_plans TEXT
+        ) LOOP
+            BEGIN v_parsed_imm_date := imm_event.immigration_date::DATE; EXCEPTION WHEN OTHERS THEN v_parsed_imm_date := NULL; END;
+            
+            v_imm_origin_country_id := get_country_id_by_name(imm_event.origin_country_name, TRUE);
+            v_imm_origin_city_id := get_city_id_by_name(imm_event.origin_city_name, v_imm_origin_country_id, TRUE);
+
+            v_imm_dest_country_id := get_country_id_by_name(imm_event.destination_country_name, TRUE);
+            v_imm_dest_city_id := get_city_id_by_name(imm_event.destination_city_name, v_imm_dest_country_id, TRUE);
+            
+            v_imm_travel_type_id := get_travel_type_id_by_name(imm_event.travel_type_name, TRUE);
+            -- TODO: Add get_port_id_by_name for entry_port_name and arrival_port_name
+            -- v_imm_entry_port_id := get_port_id_by_name(imm_event.entry_port_name, TRUE);
+            -- v_imm_arrival_port_id := get_port_id_by_name(imm_event.arrival_port_name, TRUE);
+
+            INSERT INTO immigrations (
+                immigration_date, reason_immigration, id_people,
+                origin_city_id, origin_country_id, destination_city_id, destination_country_id,
+                travel_type_id, entry_port_id, arrival_port_id, return_plans
+            ) VALUES (
+                v_parsed_imm_date, imm_event.reason_immigration, v_interviewee_id,
+                v_imm_origin_city_id, v_imm_origin_country_id, v_imm_dest_city_id, v_imm_dest_country_id,
+                v_imm_travel_type_id, v_imm_entry_port_id, v_imm_arrival_port_id, imm_event.return_plans
+            );
+        END LOOP;
+    END IF;
+
+    -- === IV. Insert Job(s) for Interviewee ===
+    IF p_jobs IS NOT NULL AND jsonb_array_length(p_jobs) > 0 THEN
+        FOR job_record IN SELECT * FROM jsonb_to_recordset(p_jobs) AS x(
+            occupation TEXT, employer TEXT, job_position TEXT, education_level_for_job TEXT
+        ) LOOP
+            v_job_edu_level_id := get_education_level_id_by_name(job_record.education_level_for_job);
+            INSERT INTO jobs (id_people, occupation, employer, job_position, education_level)
+            VALUES (v_interviewee_id, job_record.occupation, job_record.employer, job_record.job_position, v_job_edu_level_id);
+        END LOOP;
+    END IF;
+
+    -- === V. Insert Education History for Interviewee ===
+    IF p_education_history IS NOT NULL AND jsonb_array_length(p_education_history) > 0 THEN
+        FOR edu_record IN SELECT * FROM jsonb_to_recordset(p_education_history) AS x(
+            school_name TEXT, education_level_achieved TEXT, graduation_year TEXT
+        ) LOOP
+            v_edu_school_id := get_school_id_by_name(edu_record.school_name, TRUE);
+            v_edu_level_id := get_education_level_id_by_name(edu_record.education_level_achieved);
+            -- Only insert if we have a valid education level ID. School can be optional if schema allows.
+            IF v_edu_level_id IS NOT NULL THEN 
+                 -- If school_id is required by DB, ensure v_edu_school_id is also NOT NULL
+                IF v_edu_school_id IS NOT NULL THEN
+                    INSERT INTO person_education (id_people, id_school, id_education_level, graduation_year)
+                    VALUES (v_interviewee_id, v_edu_school_id, v_edu_level_id, edu_record.graduation_year);
                 ELSE
-                    mentioned_last_name := ''; -- Or NULL
+                    RAISE NOTICE 'Skipping education record for interviewee % due to missing school: %', v_interviewee_id, edu_record.school_name;
                 END IF;
-
-                mentioned_person_id := get_or_create_person_id(mentioned_first_name, mentioned_last_name);
-                IF mentioned_person_id IS NOT NULL THEN
-                    -- Avoid duplicate entries in mention_link
-                    INSERT INTO mention_link (id_demography, id_person)
-                    VALUES (v_demography_id, mentioned_person_id)
-                    ON CONFLICT (id_demography, id_person) DO NOTHING;
+            END IF;
+        END LOOP;
+    END IF;
+    
+    -- === VII. Insert Other People Mentioned and Relationships ===
+    IF p_other_people_mentioned IS NOT NULL AND jsonb_array_length(p_other_people_mentioned) > 0 THEN
+        FOR other_person_record IN SELECT * FROM jsonb_to_recordset(p_other_people_mentioned) AS x(full_name TEXT, relationship_to_interviewee TEXT, details TEXT) LOOP
+            IF other_person_record.full_name IS NOT NULL AND other_person_record.full_name <> '' THEN
+                v_other_person_id := find_or_create_person(other_person_record.full_name); 
+                
+                IF v_other_person_id IS NOT NULL AND v_interviewee_id <> v_other_person_id THEN
+                    v_relationship_id := get_relationship_id_by_name(other_person_record.relationship_to_interviewee, TRUE);
+                    IF v_relationship_id IS NOT NULL THEN
+                        INSERT INTO people_relationships (id_people, id_relative, id_type)
+                        VALUES (v_interviewee_id, v_other_person_id, v_relationship_id)
+                        ON CONFLICT (id_people, id_relative) DO NOTHING;
+                    END IF;
                 END IF;
             END IF;
         END LOOP;
     END IF;
 
-    -- 5. Handle travel_info
-    -- Parse departure date
-    BEGIN
-        v_departure_parsed_date := p_departure_date::DATE;
-    EXCEPTION WHEN OTHERS THEN
-        v_departure_parsed_date := NULL; -- Handle invalid date strings
-    END;
-
-    v_city_id := get_or_create_city_for_country(p_destination_country);
-    v_motive_id := get_motive_migration_id(p_motive_migration);
-
-    INSERT INTO travel_info (
-        departure_date, destination_city, id_motive_migration, travel_duration, return_plans
-    ) VALUES (
-        v_departure_parsed_date, v_city_id, v_motive_id, p_travel_duration, p_return_plans
-    ) RETURNING id_travel INTO v_travel_id;
-    p_created_travel_id := v_travel_id;
-
-    -- 6. Link travel_methods to travel_info via travel_link
-    IF v_travel_id IS NOT NULL AND p_travel_methods IS NOT NULL THEN
-        FOREACH travel_method_name IN ARRAY p_travel_methods LOOP
-            travel_method_id := get_travel_method_id(travel_method_name);
-            IF travel_method_id IS NOT NULL THEN
-                -- Avoid duplicate entries
-                INSERT INTO travel_link (id_travel, id_travel_method)
-                VALUES (v_travel_id, travel_method_id)
-                ON CONFLICT (id_travel, id_travel_method) DO NOTHING;
+    -- === IX. Cultural Aspects ===
+    IF p_cultural_associated_cultures IS NOT NULL THEN
+        FOREACH culture_name_item IN ARRAY p_cultural_associated_cultures LOOP
+            v_culture_id := get_culture_id_by_name(culture_name_item, TRUE);
+            IF v_culture_id IS NOT NULL THEN
+                INSERT INTO people_cultures (id_people, id_culture)
+                VALUES (v_interviewee_id, v_culture_id)
+                ON CONFLICT (id_people, id_culture) DO NOTHING;
+                IF v_person_main_culture_id IS NULL THEN v_person_main_culture_id := v_culture_id; END IF; -- Capture one for language linking
             END IF;
         END LOOP;
     END IF;
 
-    -- 7. Insert text_files record
-    IF v_demography_id IS NOT NULL THEN -- Require demography to link text
-        INSERT INTO text_files (
-            path, story_title, story_summary, id_demography, id_travel
-        ) VALUES (
-            p_text_file_path, p_story_title, p_story_summary, v_demography_id, v_travel_id
-        ) RETURNING id_text INTO v_text_id;
-        p_created_text_id := v_text_id;
+    IF p_cultural_languages_spoken IS NOT NULL AND jsonb_array_length(p_cultural_languages_spoken) > 0 THEN
+        FOR language_record IN SELECT * FROM jsonb_to_recordset(p_cultural_languages_spoken) AS x(language_name TEXT, proficiency_or_context TEXT) LOOP
+            v_language_id := get_language_id_by_name(language_record.language_name, TRUE);
+            IF v_language_id IS NOT NULL AND v_person_main_culture_id IS NOT NULL THEN
+                 INSERT INTO culture_languages (id_culture, id_language)
+                 VALUES (v_person_main_culture_id, v_language_id) -- Links language to one of the person's cultures
+                 ON CONFLICT (id_culture, id_language) DO NOTHING;
+            END IF;
+        END LOOP;
+    END IF;
+    
+    -- Cultural Events Mentioned
+    IF p_cultural_events_mentioned IS NOT NULL AND jsonb_array_length(p_cultural_events_mentioned) > 0 THEN
+        FOR cultural_event_record IN SELECT * FROM jsonb_to_recordset(p_cultural_events_mentioned) AS x(event_name TEXT, event_details TEXT) LOOP
+            -- TODO: Create get_cultural_event_id_by_name helper
+            -- v_cultural_event_id := get_cultural_event_id_by_name(cultural_event_record.event_name, TRUE);
+            -- IF v_cultural_event_id IS NOT NULL AND v_person_main_culture_id IS NOT NULL THEN
+            --     INSERT INTO culture_events_map (id_culture, id_event)
+            --     VALUES (v_person_main_culture_id, v_cultural_event_id)
+            --     ON CONFLICT (id_culture, id_event) DO NOTHING;
+            -- END IF;
+        END LOOP;
     END IF;
 
-    -- 8. Insert important_keywords
-    IF v_text_id IS NOT NULL AND p_important_keywords IS NOT NULL THEN
-        FOREACH keyword_text IN ARRAY p_important_keywords LOOP
-            IF keyword_text <> '' THEN
-                -- Avoid duplicate keywords for the same text file if desired,
-                -- or let duplicates exist if that's the design.
-                -- Current keywords table PK is id_keyword (UUID), so duplicates are allowed per text.
-                -- If (id_text, keyword) should be unique, add a unique constraint to the table.
+    -- Cultural Practices Mentioned
+    IF p_cultural_practices_mentioned IS NOT NULL AND jsonb_array_length(p_cultural_practices_mentioned) > 0 THEN
+        FOR cultural_practice_record IN SELECT * FROM jsonb_to_recordset(p_cultural_practices_mentioned) AS x(practice_name TEXT, practice_description TEXT) LOOP
+            -- TODO: Create get_cultural_practice_id_by_name helper
+            -- v_cultural_practice_id := get_cultural_practice_id_by_name(cultural_practice_record.practice_name, TRUE);
+            -- IF v_cultural_practice_id IS NOT NULL AND v_person_main_culture_id IS NOT NULL THEN
+            --     INSERT INTO culture_practices_map (id_culture, id_practice)
+            --     VALUES (v_person_main_culture_id, v_cultural_practice_id)
+            --     ON CONFLICT (id_culture, id_practice) DO NOTHING;
+            -- END IF;
+        END LOOP;
+    END IF;
+
+
+    -- === X. Historic Event Involvement ===
+    IF p_historic_events_involved IS NOT NULL AND jsonb_array_length(p_historic_events_involved) > 0 THEN
+        FOR historic_event_record IN SELECT * FROM jsonb_to_recordset(p_historic_events_involved) AS x(historic_event_name TEXT, role_or_involvement_description TEXT) LOOP
+            v_historic_event_id := get_historic_event_id_by_name(historic_event_record.historic_event_name, TRUE);
+            IF v_historic_event_id IS NOT NULL THEN
+                INSERT INTO people_in_historic_events (id_people, id_event)
+                VALUES (v_interviewee_id, v_historic_event_id)
+                ON CONFLICT (id_people, id_event) DO NOTHING;
+            END IF;
+        END LOOP;
+    END IF;
+
+    -- === XI. General Keywords ===
+    IF v_text_file_id IS NOT NULL AND p_general_keywords IS NOT NULL THEN
+        FOREACH keyword_item IN ARRAY p_general_keywords LOOP
+            IF keyword_item IS NOT NULL AND keyword_item <> '' THEN
+                -- Consider unique constraint on (keyword, id_text) in keywords table
                 INSERT INTO keywords (keyword, id_text)
-                VALUES (trim(keyword_text), v_text_id);
+                VALUES (trim(keyword_item), v_text_file_id)
+                ON CONFLICT DO NOTHING; -- Requires a unique constraint on (keyword, id_text) to work
             END IF;
         END LOOP;
     END IF;
+
+    -- Sections requiring more detailed JSON from AI and dedicated loops (not fully implemented here):
+    -- VI. Health Issues (p_health_issues JSONB)
+    -- VIII. Community Involvements (p_community_involvements JSONB)
 
 END;
-$$ LANGUAGE plpgsql;
+$$;
