@@ -176,5 +176,4 @@ cython_debug/
 
 .DS_Store
 Icon*
-
-*.jsonl
+csv_extractions
