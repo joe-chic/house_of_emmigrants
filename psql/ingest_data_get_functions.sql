@@ -1,145 +1,208 @@
--- Helper to get id_sex from sexes table
-CREATE OR REPLACE FUNCTION get_sex_id(p_sex_name TEXT)
-RETURNS UUID AS $$
-DECLARE
-    v_id UUID;
+-- Get ID from 'sexes'
+CREATE OR REPLACE FUNCTION get_sex_id_by_name(p_sex_name TEXT)
+RETURNS INT AS $$
+DECLARE v_id INT;
 BEGIN
-    SELECT id_sex INTO v_id FROM sexes WHERE lower(sex) = lower(p_sex_name);
-    RETURN v_id; -- Returns NULL if not found
-END;
-$$ LANGUAGE plpgsql;
-
--- Helper to get id_marital from marital_statuses table
-CREATE OR REPLACE FUNCTION get_marital_status_id(p_status_name TEXT)
-RETURNS UUID AS $$
-DECLARE
-    v_id UUID;
-BEGIN
-    SELECT id_marital INTO v_id FROM marital_statuses WHERE lower(status) = lower(p_status_name);
+    IF p_sex_name IS NULL OR p_sex_name = '' THEN RETURN NULL; END IF;
+    SELECT id_sex INTO v_id FROM sexes WHERE lower(sex) = lower(trim(p_sex_name));
     RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- Helper for education_level
-CREATE OR REPLACE FUNCTION get_education_level_id(p_level_name TEXT)
-RETURNS UUID AS $$
-DECLARE
-    v_id UUID;
+-- Get ID from 'marital_statuses'
+CREATE OR REPLACE FUNCTION get_marital_status_id_by_name(p_status_name TEXT)
+RETURNS INT AS $$
+DECLARE v_id INT;
 BEGIN
-    SELECT id_education INTO v_id FROM education_levels WHERE lower(level) = lower(p_level_name);
+    IF p_status_name IS NULL OR p_status_name = '' THEN RETURN NULL; END IF;
+    SELECT id_marital INTO v_id FROM marital_statuses WHERE lower(status) = lower(trim(p_status_name));
     RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- Helper for legal_status
-CREATE OR REPLACE FUNCTION get_legal_status_id(p_status_name TEXT)
-RETURNS UUID AS $$
-DECLARE
-    v_id UUID;
+-- Get ID from 'legal_statuses'
+CREATE OR REPLACE FUNCTION get_legal_status_id_by_name(p_status_name TEXT)
+RETURNS INT AS $$
+DECLARE v_id INT;
 BEGIN
-    SELECT id_legal INTO v_id FROM legal_statuses WHERE lower(status) = lower(p_status_name);
+    IF p_status_name IS NULL OR p_status_name = '' THEN RETURN NULL; END IF;
+    SELECT id_legal INTO v_id FROM legal_statuses WHERE lower(status) = lower(trim(p_status_name));
     RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- Helper for motive_migration
-CREATE OR REPLACE FUNCTION get_motive_migration_id(p_motive_name TEXT)
-RETURNS UUID AS $$
-DECLARE
-    v_id UUID;
+-- Get ID from 'countries'
+CREATE OR REPLACE FUNCTION get_country_id_by_name(p_country_name TEXT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
 BEGIN
-    SELECT id_motive INTO v_id FROM motives_migration WHERE lower(motive) = lower(p_motive_name);
-    RETURN v_id;
-END;
-$$ LANGUAGE plpgsql;
-
--- Helper for travel_method
-CREATE OR REPLACE FUNCTION get_travel_method_id(p_method_name TEXT)
-RETURNS UUID AS $$
-DECLARE
-    v_id UUID;
-BEGIN
-    SELECT id_travel_method INTO v_id FROM travel_methods WHERE lower(method) = lower(p_method_name);
-    RETURN v_id;
-END;
-$$ LANGUAGE plpgsql;
-
--- Helper for country
-CREATE OR REPLACE FUNCTION get_country_id(p_country_name TEXT)
-RETURNS UUID AS $$
-DECLARE
-    v_id UUID;
-BEGIN
-    -- Consider more robust matching (e.g., case-insensitive, trimming whitespace)
-    SELECT id_country INTO v_id FROM countries WHERE lower(country) = lower(p_country_name);
-    IF v_id IS NULL AND p_country_name IS NOT NULL AND p_country_name <> '' THEN
-        -- Optionally, insert the new country if it doesn't exist
-        -- For now, we'll just return NULL if not found to be strict.
-        -- INSERT INTO countries (country) VALUES (p_country_name) RETURNING id_country INTO v_id;
+    IF p_country_name IS NULL OR p_country_name = '' THEN RETURN NULL; END IF;
+    SELECT id_country INTO v_id FROM countries WHERE lower(country) = lower(trim(p_country_name));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO countries (country) VALUES (trim(p_country_name)) RETURNING id_country INTO v_id;
     END IF;
     RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- Helper to find/create a city and return its ID (simplified)
--- This is tricky: if AI only gives country, what city do we use?
--- This function will try to find ANY city for the country, or create a placeholder city.
-CREATE OR REPLACE FUNCTION get_or_create_city_for_country(
-    p_country_name TEXT, 
-    p_city_name_placeholder TEXT DEFAULT 'Unknown City' -- Placeholder if no specific city known for the country
-)
-RETURNS UUID AS $$
-DECLARE
-    v_country_id UUID;
-    v_city_id UUID;
+-- Get ID from 'cities' (or create if needed, linking to country)
+CREATE OR REPLACE FUNCTION get_city_id_by_name(p_city_name TEXT, p_country_id INT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
 BEGIN
-    v_country_id := get_country_id(p_country_name);
-    IF v_country_id IS NULL THEN
-        RETURN NULL; -- No country, no city
+    IF p_city_name IS NULL OR p_city_name = '' THEN RETURN NULL; END IF;
+    SELECT id_city INTO v_id FROM cities 
+    WHERE lower(city) = lower(trim(p_city_name)) AND (cities.id_country = p_country_id OR (cities.id_country IS NULL AND p_country_id IS NULL));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO cities (city, id_country) VALUES (trim(p_city_name), p_country_id) RETURNING id_city INTO v_id;
     END IF;
-
-    -- Try to find an existing city for this country (e.g., a capital or a placeholder)
-    -- This logic needs to be adapted based on how you want to handle city mapping.
-    -- For simplicity, let's assume we look for a city named after the country or a generic placeholder.
-    SELECT id_city INTO v_city_id FROM cities 
-    WHERE id_country = v_country_id AND lower(city) = lower(p_city_name_placeholder || ' - ' || p_country_name) 
-    LIMIT 1;
-
-    IF v_city_id IS NULL THEN
-        -- Create a placeholder city for this country if one doesn't exist
-        INSERT INTO cities (city, id_country) 
-        VALUES (p_city_name_placeholder || ' - ' || p_country_name, v_country_id) 
-        RETURNING id_city INTO v_city_id;
-    END IF;
-    RETURN v_city_id;
+    RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- Helper to find or create a person and return their ID
-CREATE OR REPLACE FUNCTION get_or_create_person_id(
-    p_first_name TEXT,
-    p_last_name TEXT
-)
-RETURNS UUID AS $$
-DECLARE
-    v_person_id UUID;
-    v_first_name_trimmed TEXT := trim(p_first_name);
-    v_last_name_trimmed TEXT := trim(p_last_name);
+-- Get ID from 'travel_types'
+CREATE OR REPLACE FUNCTION get_travel_type_id_by_name(p_type_name TEXT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
 BEGIN
-    IF v_first_name_trimmed = '' AND v_last_name_trimmed = '' THEN
-        RETURN NULL; -- Not enough info to create a person
+    IF p_type_name IS NULL OR p_type_name = '' THEN RETURN NULL; END IF;
+    SELECT id_type INTO v_id FROM travel_types WHERE lower(type) = lower(trim(p_type_name));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO travel_types (type) VALUES (trim(p_type_name)) RETURNING id_type INTO v_id;
+    END IF;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get ID from 'education_levels'
+CREATE OR REPLACE FUNCTION get_education_level_id_by_name(p_level_name TEXT)
+RETURNS INT AS $$
+DECLARE v_id INT;
+BEGIN
+    IF p_level_name IS NULL OR p_level_name = '' THEN RETURN NULL; END IF;
+    SELECT id_education INTO v_id FROM education_levels WHERE lower(level) = lower(trim(p_level_name));
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get ID from 'relationships'
+CREATE OR REPLACE FUNCTION get_relationship_id_by_name(p_rel_name TEXT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
+BEGIN
+    IF p_rel_name IS NULL OR p_rel_name = '' THEN RETURN NULL; END IF;
+    SELECT id_relationship INTO v_id FROM relationships WHERE lower(relationship_type) = lower(trim(p_rel_name));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO relationships (relationship_type) VALUES (trim(p_rel_name)) RETURNING id_relationship INTO v_id;
+    END IF;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get ID from 'cultures'
+CREATE OR REPLACE FUNCTION get_culture_id_by_name(p_culture_name TEXT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
+BEGIN
+    IF p_culture_name IS NULL OR p_culture_name = '' THEN RETURN NULL; END IF;
+    SELECT id_culture INTO v_id FROM cultures WHERE lower(name) = lower(trim(p_culture_name));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO cultures (name) VALUES (trim(p_culture_name)) RETURNING id_culture INTO v_id;
+    END IF;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get ID from 'languages'
+CREATE OR REPLACE FUNCTION get_language_id_by_name(p_lang_name TEXT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
+BEGIN
+    IF p_lang_name IS NULL OR p_lang_name = '' THEN RETURN NULL; END IF;
+    SELECT id_language INTO v_id FROM languages WHERE lower(name) = lower(trim(p_lang_name));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO languages (name) VALUES (trim(p_lang_name)) RETURNING id_language INTO v_id;
+    END IF;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get ID from 'historic_events'
+CREATE OR REPLACE FUNCTION get_historic_event_id_by_name(p_event_name TEXT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
+BEGIN
+    IF p_event_name IS NULL OR p_event_name = '' THEN RETURN NULL; END IF;
+    SELECT id_event INTO v_id FROM historic_events WHERE lower(historic_event) = lower(trim(p_event_name));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO historic_events (historic_event) VALUES (trim(p_event_name)) RETURNING id_event INTO v_id;
+    END IF;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get ID from 'schools'
+CREATE OR REPLACE FUNCTION get_school_id_by_name(p_school_name TEXT, p_create_if_not_exists BOOLEAN DEFAULT FALSE)
+RETURNS INT AS $$
+DECLARE v_id INT;
+BEGIN
+    IF p_school_name IS NULL OR p_school_name = '' THEN RETURN NULL; END IF;
+    SELECT id_school INTO v_id FROM schools WHERE lower(name) = lower(trim(p_school_name));
+    IF v_id IS NULL AND p_create_if_not_exists THEN
+        INSERT INTO schools (name) VALUES (trim(p_school_name)) RETURNING id_school INTO v_id;
+    END IF;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Helper to find or create a person (people table)
+-- Now returns the ID of the found or created person
+CREATE OR REPLACE FUNCTION find_or_create_person(
+    p_full_name TEXT,
+    p_birthday TEXT DEFAULT NULL, -- YYYY-MM-DD string
+    p_birthplace_city_name TEXT DEFAULT NULL,
+    p_birthplace_country_name TEXT DEFAULT NULL,
+    p_sex_name TEXT DEFAULT NULL,
+    p_marital_status_name TEXT DEFAULT NULL,
+    p_legal_status_name TEXT DEFAULT NULL
+) RETURNS INT AS $$
+DECLARE
+    v_person_id INT;
+    v_parsed_birthday DATE;
+    v_birth_city_id INT;
+    v_birth_country_id INT;
+    v_sex_id INT;
+    v_marital_id INT;
+    v_legal_id INT;
+    v_name_trimmed TEXT := trim(p_full_name);
+BEGIN
+    IF v_name_trimmed IS NULL OR v_name_trimmed = '' THEN
+        RAISE NOTICE 'Cannot find or create person with empty name.';
+        RETURN NULL;
     END IF;
 
-    -- Try to find existing person (simple match by name - might need more robust logic)
-    SELECT id_person INTO v_person_id FROM person_info 
-    WHERE lower(first_name) = lower(v_first_name_trimmed) 
-      AND (lower(first_surname) = lower(v_last_name_trimmed) OR (first_surname IS NULL AND v_last_name_trimmed = ''));
-      -- Added OR condition for cases where last name might be null or empty string.
+    -- Attempt to find an existing person by full name (simplistic match)
+    SELECT id_people INTO v_person_id FROM people WHERE lower(name) = lower(v_name_trimmed) LIMIT 1;
 
     IF v_person_id IS NULL THEN
-        INSERT INTO person_info (first_name, first_surname) 
-        VALUES (v_first_name_trimmed, CASE WHEN v_last_name_trimmed = '' THEN NULL ELSE v_last_name_trimmed END) 
-        RETURNING id_person INTO v_person_id;
+        -- Parse birthday
+        BEGIN v_parsed_birthday := p_birthday::DATE; EXCEPTION WHEN OTHERS THEN v_parsed_birthday := NULL; END;
+        
+        -- Get FK IDs
+        v_birth_country_id := get_country_id_by_name(p_birthplace_country_name, TRUE);
+        IF v_birth_country_id IS NOT NULL THEN
+            v_birth_city_id := get_city_id_by_name(p_birthplace_city_name, v_birth_country_id, TRUE);
+        ELSE
+            v_birth_city_id := get_city_id_by_name(p_birthplace_city_name, NULL, TRUE); -- City without country if country unknown
+        END IF;
+        
+        v_sex_id := get_sex_id_by_name(p_sex_name);
+        v_marital_id := get_marital_status_id_by_name(p_marital_status_name);
+        v_legal_id := get_legal_status_id_by_name(p_legal_status_name);
+
+        INSERT INTO people (name, birthday, birthplace_city, birthplace_country, sex, marital_status, legal_status)
+        VALUES (v_name_trimmed, v_parsed_birthday, v_birth_city_id, v_birth_country_id, v_sex_id, v_marital_id, v_legal_id)
+        RETURNING id_people INTO v_person_id;
     END IF;
     RETURN v_person_id;
 END;

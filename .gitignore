@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-Icon*
 
 # C extensions
 *.so
@@ -176,3 +175,6 @@ cython_debug/
 .pypirc
 
 .DS_Store
+Icon*
+
+*.jsonl
