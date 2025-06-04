@@ -1,17 +1,15 @@
 import json
 import os
-import re
 import time
 import random
-from datetime import datetime
 import csv
 import google.generativeai as genai
-import psycopg  # Uncommented for database operations
+import psycopg 
 
 # --- Database connection settings ---
 DB_NAME = "house_of_emigrants"
 DB_USER = "postgres"
-DB_PASS = "666"  # Consider using environment variables
+DB_PASS = "666"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 
