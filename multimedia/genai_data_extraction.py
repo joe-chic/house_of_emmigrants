@@ -6,23 +6,21 @@ import random
 from datetime import datetime
 import csv
 import google.generativeai as genai
-import psycopg # Uncommented for database operations
+import psycopg  # Uncommented for database operations
 
 # --- Database connection settings ---
-DB_NAME = 'house_of_emigrants'
-DB_USER = 'postgres'
-DB_PASS = '666' # Consider using environment variables
-DB_HOST = 'localhost'
-DB_PORT = '5432'
+DB_NAME = "house_of_emigrants"
+DB_USER = "postgres"
+DB_PASS = "666"  # Consider using environment variables
+DB_HOST = "localhost"
+DB_PORT = "5432"
+
 
 def get_db_connection():
     return psycopg.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASS,
-        host=DB_HOST,
-        port=DB_PORT
+        dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST, port=DB_PORT
     )
+
 
 # --- Genai configuration ---
 MODEL_NAME = "gemini-2.0-flash"
@@ -172,26 +170,33 @@ Interview Text:
 {{interview_text}}
 """
 
+
 def write_csv_row(filepath: str, data_dict: dict, fieldnames: list, interview_id: str):
     """Appends a data row to a CSV file. Writes header if file is new."""
     file_exists = os.path.isfile(filepath)
-    row_to_write = {'interview_id': interview_id, **data_dict}
-    
-    actual_fieldnames = fieldnames[:] # Create a copy
-    if 'interview_id' not in actual_fieldnames:
-        actual_fieldnames.insert(0, 'interview_id')
-    elif actual_fieldnames[0] != 'interview_id':
-        actual_fieldnames.remove('interview_id')
-        actual_fieldnames.insert(0, 'interview_id')
+    row_to_write = {"interview_id": interview_id, **data_dict}
+
+    actual_fieldnames = fieldnames[:]  # Create a copy
+    if "interview_id" not in actual_fieldnames:
+        actual_fieldnames.insert(0, "interview_id")
+    elif actual_fieldnames[0] != "interview_id":
+        actual_fieldnames.remove("interview_id")
+        actual_fieldnames.insert(0, "interview_id")
 
     try:
-        with open(filepath, 'a', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=actual_fieldnames, extrasaction='ignore', quoting=csv.QUOTE_MINIMAL)
+        with open(filepath, "a", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=actual_fieldnames,
+                extrasaction="ignore",
+                quoting=csv.QUOTE_MINIMAL,
+            )
             if not file_exists or os.path.getsize(filepath) == 0:
                 writer.writeheader()
             writer.writerow(row_to_write)
     except Exception as e:
         print(f"Error writing to CSV file {filepath}: {e}")
+
 
 def save_data_to_csvs(interview_id: str, data: dict):
     """Saves extracted data into multiple CSV files."""
@@ -205,81 +210,183 @@ def save_data_to_csvs(interview_id: str, data: dict):
         "interview_date": data.get("interview_date"),
         "interviewee_name": data.get("interviewee_name"),
         "interviewee_birthday": data.get("interviewee_birthday"),
-        "interviewee_birthplace_city_name": data.get("interviewee_birthplace_city_name"),
-        "interviewee_birthplace_country_name": data.get("interviewee_birthplace_country_name"),
+        "interviewee_birthplace_city_name": data.get(
+            "interviewee_birthplace_city_name"
+        ),
+        "interviewee_birthplace_country_name": data.get(
+            "interviewee_birthplace_country_name"
+        ),
         "interviewee_sex": data.get("interviewee_sex"),
         "interviewee_marital_status": data.get("interviewee_marital_status"),
-        "interviewee_legal_status": data.get("interviewee_legal_status_at_migration_or_current")
+        "interviewee_legal_status": data.get(
+            "interviewee_legal_status_at_migration_or_current"
+        ),
     }
-    core_fieldnames = ["story_title", "story_summary", "interview_location", "interview_date",
-                       "interviewee_name", "interviewee_birthday", "interviewee_birthplace_city_name",
-                       "interviewee_birthplace_country_name", "interviewee_sex", "interviewee_marital_status",
-                       "interviewee_legal_status"] # Explicit order
-    write_csv_row(os.path.join(CSV_OUTPUT_DIR, "interviews_core.csv"), core_data, core_fieldnames, interview_id)
+    core_fieldnames = [
+        "story_title",
+        "story_summary",
+        "interview_location",
+        "interview_date",
+        "interviewee_name",
+        "interviewee_birthday",
+        "interviewee_birthplace_city_name",
+        "interviewee_birthplace_country_name",
+        "interviewee_sex",
+        "interviewee_marital_status",
+        "interviewee_legal_status",
+    ]  # Explicit order
+    write_csv_row(
+        os.path.join(CSV_OUTPUT_DIR, "interviews_core.csv"),
+        core_data,
+        core_fieldnames,
+        interview_id,
+    )
 
     # 2. immigration_events.csv
     imm_events = data.get("interviewee_immigration_events", [])
-    imm_fieldnames = ["event_sequence_id", "immigration_date", "reason_immigration", "origin_city_name",
-                      "origin_country_name", "destination_city_name", "destination_country_name",
-                      "travel_type_name", "entry_port_name", "arrival_port_name", "return_plans"]
+    imm_fieldnames = [
+        "event_sequence_id",
+        "immigration_date",
+        "reason_immigration",
+        "origin_city_name",
+        "origin_country_name",
+        "destination_city_name",
+        "destination_country_name",
+        "travel_type_name",
+        "entry_port_name",
+        "arrival_port_name",
+        "return_plans",
+    ]
     for i, event in enumerate(imm_events):
-        event_data = {k: event.get(k) for k in imm_fieldnames if k != "event_sequence_id"}
+        event_data = {
+            k: event.get(k) for k in imm_fieldnames if k != "event_sequence_id"
+        }
         event_data["event_sequence_id"] = i + 1
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "immigration_events.csv"), event_data, imm_fieldnames, interview_id)
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "immigration_events.csv"),
+            event_data,
+            imm_fieldnames,
+            interview_id,
+        )
 
     # 3. jobs.csv
     jobs_list = data.get("interviewee_jobs", [])
-    jobs_fieldnames = ["job_sequence_id", "occupation", "employer", "job_position", "education_level_for_job"]
+    jobs_fieldnames = [
+        "job_sequence_id",
+        "occupation",
+        "employer",
+        "job_position",
+        "education_level_for_job",
+    ]
     for i, job in enumerate(jobs_list):
         job_data = {k: job.get(k) for k in jobs_fieldnames if k != "job_sequence_id"}
         job_data["job_sequence_id"] = i + 1
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "jobs.csv"), job_data, jobs_fieldnames, interview_id)
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "jobs.csv"),
+            job_data,
+            jobs_fieldnames,
+            interview_id,
+        )
 
     # 4. education_history.csv
     edu_history = data.get("interviewee_education_history", [])
-    edu_fieldnames = ["edu_sequence_id", "school_name", "education_level_achieved", "graduation_year"]
+    edu_fieldnames = [
+        "edu_sequence_id",
+        "school_name",
+        "education_level_achieved",
+        "graduation_year",
+    ]
     for i, edu in enumerate(edu_history):
         edu_data = {k: edu.get(k) for k in edu_fieldnames if k != "edu_sequence_id"}
         edu_data["edu_sequence_id"] = i + 1
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "education_history.csv"), edu_data, edu_fieldnames, interview_id)
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "education_history.csv"),
+            edu_data,
+            edu_fieldnames,
+            interview_id,
+        )
 
     # 5. other_people.csv
     other_people = data.get("other_people_mentioned", [])
-    other_people_fieldnames = ["person_sequence_id", "full_name", "relationship_to_interviewee", "details"]
+    other_people_fieldnames = [
+        "person_sequence_id",
+        "full_name",
+        "relationship_to_interviewee",
+        "details",
+    ]
     for i, person in enumerate(other_people):
-        person_data = {k: person.get(k) for k in other_people_fieldnames if k != "person_sequence_id"}
+        person_data = {
+            k: person.get(k)
+            for k in other_people_fieldnames
+            if k != "person_sequence_id"
+        }
         person_data["person_sequence_id"] = i + 1
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "other_people.csv"), person_data, other_people_fieldnames, interview_id)
-    
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "other_people.csv"),
+            person_data,
+            other_people_fieldnames,
+            interview_id,
+        )
+
     # 6. Cultural Aspects
     cultural_aspects = data.get("interviewee_cultural_aspects", {})
-    
+
     assoc_cultures = cultural_aspects.get("associated_culture_names", [])
     cultures_fieldnames = ["culture_name"]
     for culture in assoc_cultures:
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "interview_associated_cultures.csv"), {"culture_name": culture}, cultures_fieldnames, interview_id)
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "interview_associated_cultures.csv"),
+            {"culture_name": culture},
+            cultures_fieldnames,
+            interview_id,
+        )
 
     lang_spoken = cultural_aspects.get("languages_spoken_or_mentioned", [])
     languages_fieldnames = ["language_name", "proficiency_or_context"]
     for lang in lang_spoken:
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "interview_languages.csv"), lang, languages_fieldnames, interview_id)
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "interview_languages.csv"),
+            lang,
+            languages_fieldnames,
+            interview_id,
+        )
 
     # 7. Historic Event Involvements
     historic_events = data.get("interviewee_historic_event_involvement", [])
-    historic_event_fieldnames = ["event_sequence_id", "historic_event_name", "role_or_involvement_description"]
+    historic_event_fieldnames = [
+        "event_sequence_id",
+        "historic_event_name",
+        "role_or_involvement_description",
+    ]
     for i, event in enumerate(historic_events):
-        event_data = {k: event.get(k) for k in historic_event_fieldnames if k != "event_sequence_id"}
+        event_data = {
+            k: event.get(k)
+            for k in historic_event_fieldnames
+            if k != "event_sequence_id"
+        }
         event_data["event_sequence_id"] = i + 1
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "interview_historic_events.csv"), event_data, historic_event_fieldnames, interview_id)
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "interview_historic_events.csv"),
+            event_data,
+            historic_event_fieldnames,
+            interview_id,
+        )
 
     # 8. General Keywords
     gen_keywords = data.get("general_keywords", [])
     keywords_fieldnames = ["keyword"]
     for keyword in gen_keywords:
-        write_csv_row(os.path.join(CSV_OUTPUT_DIR, "general_keywords.csv"), {"keyword": keyword}, keywords_fieldnames, interview_id)
+        write_csv_row(
+            os.path.join(CSV_OUTPUT_DIR, "general_keywords.csv"),
+            {"keyword": keyword},
+            keywords_fieldnames,
+            interview_id,
+        )
 
 
-def store_extracted_data_v2(text_file_path: str, data: dict): # data is the JSON object from Gemini
+def store_extracted_data_v2(
+    text_file_path: str, data: dict
+):  # data is the JSON object from Gemini
     """Stores the extracted AI data into the PostgreSQL database via stored procedure."""
     conn = None
     print(f"Attempting to store data in DB for: {os.path.basename(text_file_path)}")
@@ -292,13 +399,17 @@ def store_extracted_data_v2(text_file_path: str, data: dict): # data is the JSON
             edu_history = data.get("interviewee_education_history", [])
             health_issues_list = data.get("interviewee_health_issues", [])
             other_people = data.get("other_people_mentioned", [])
-            community_involvements_list = data.get("interviewee_community_involvements", [])
-            
+            community_involvements_list = data.get(
+                "interviewee_community_involvements", []
+            )
+
             cultural_aspects = data.get("interviewee_cultural_aspects", {})
             assoc_cultures = cultural_aspects.get("associated_culture_names", [])
             lang_spoken = cultural_aspects.get("languages_spoken_or_mentioned", [])
             cultural_events = cultural_aspects.get("cultural_events_mentioned", [])
-            cultural_practices = cultural_aspects.get("cultural_practices_mentioned", [])
+            cultural_practices = cultural_aspects.get(
+                "cultural_practices_mentioned", []
+            )
 
             historic_events = data.get("interviewee_historic_event_involvement", [])
             gen_keywords = data.get("general_keywords", [])
@@ -323,90 +434,129 @@ def store_extracted_data_v2(text_file_path: str, data: dict): # data is the JSON
                 ");",
                 (
                     os.path.basename(text_file_path),
-                    data.get("story_title"), data.get("story_summary"),
-                    data.get("interview_location"), data.get("interview_date"),
-                    data.get("interviewee_name"), data.get("interviewee_birthday"),
-                    data.get("interviewee_birthplace_city_name"), data.get("interviewee_birthplace_country_name"),
-                    data.get("interviewee_sex"), data.get("interviewee_marital_status"), data.get("interviewee_legal_status_at_migration_or_current"),
+                    data.get("story_title"),
+                    data.get("story_summary"),
+                    data.get("interview_location"),
+                    data.get("interview_date"),
+                    data.get("interviewee_name"),
+                    data.get("interviewee_birthday"),
+                    data.get("interviewee_birthplace_city_name"),
+                    data.get("interviewee_birthplace_country_name"),
+                    data.get("interviewee_sex"),
+                    data.get("interviewee_marital_status"),
+                    data.get("interviewee_legal_status_at_migration_or_current"),
                     json.dumps(imm_events) if imm_events else None,
                     json.dumps(jobs_list) if jobs_list else None,
                     json.dumps(edu_history) if edu_history else None,
                     json.dumps(health_issues_list) if health_issues_list else None,
                     json.dumps(other_people) if other_people else None,
-                    json.dumps(community_involvements_list) if community_involvements_list else None,
-                    assoc_cultures if assoc_cultures else None, # TEXT[]
+                    json.dumps(community_involvements_list)
+                    if community_involvements_list
+                    else None,
+                    assoc_cultures if assoc_cultures else None,  # TEXT[]
                     json.dumps(lang_spoken) if lang_spoken else None,
                     json.dumps(cultural_events) if cultural_events else None,
                     json.dumps(cultural_practices) if cultural_practices else None,
                     json.dumps(historic_events) if historic_events else None,
-                    gen_keywords if gen_keywords else None # TEXT[]
-                )
+                    gen_keywords if gen_keywords else None,  # TEXT[]
+                ),
             )
             conn.commit()
-            print(f"Successfully ingested data into DB for: {os.path.basename(text_file_path)}")
+            print(
+                f"Successfully ingested data into DB for: {os.path.basename(text_file_path)}"
+            )
 
     except psycopg.Error as e:
         if conn:
             conn.rollback()
-        print(f"Database error storing data for {os.path.basename(text_file_path)}: {e}")
+        print(
+            f"Database error storing data for {os.path.basename(text_file_path)}: {e}"
+        )
         print(f"SQLSTATE: {e.sqlstate}")
     except Exception as e:
         if conn:
             conn.rollback()
-        print(f"An unexpected error occurred while storing data for {os.path.basename(text_file_path)}: {e}")
+        print(
+            f"An unexpected error occurred while storing data for {os.path.basename(text_file_path)}: {e}"
+        )
     finally:
         if conn:
             conn.close()
 
 
-def call_gemini_api_with_retry(interview_text: str, api_key: str, filename_for_log: str,
-                               max_retries: int = 3, initial_wait_time: float = 7.0) -> str | None:
+def call_gemini_api_with_retry(
+    interview_text: str,
+    api_key: str,
+    filename_for_log: str,
+    max_retries: int = 3,
+    initial_wait_time: float = 7.0,
+) -> str | None:
     genai.configure(api_key=api_key)
     generation_config = genai.types.GenerationConfig(
         response_mime_type="application/json",
         temperature=LOW_TEMPERATURE,
-        max_output_tokens=MAX_OUTPUT_TOKENS
+        max_output_tokens=MAX_OUTPUT_TOKENS,
     )
     model = genai.GenerativeModel(MODEL_NAME, generation_config=generation_config)
-    full_prompt = GEMINI_JSON_PROMPT_TEMPLATE.replace("{{interview_text}}", interview_text)
+    full_prompt = GEMINI_JSON_PROMPT_TEMPLATE.replace(
+        "{{interview_text}}", interview_text
+    )
     retries = 0
     current_wait_time = initial_wait_time
 
     while retries <= max_retries:
         try:
-            print(f"Attempt {retries + 1}/{max_retries + 1} for {filename_for_log}: Sending prompt to Gemini (model: {MODEL_NAME})...")
+            print(
+                f"Attempt {retries + 1}/{max_retries + 1} for {filename_for_log}: Sending prompt to Gemini (model: {MODEL_NAME})..."
+            )
             response = model.generate_content(full_prompt)
-            if response.parts: return response.text.strip()
-            
-            print(f"Gemini API returned no parts in the response for {filename_for_log}.")
-            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
-                print(f"Prompt Feedback for {filename_for_log}: {response.prompt_feedback}")
+            if response.parts:
+                return response.text.strip()
+
+            print(
+                f"Gemini API returned no parts in the response for {filename_for_log}."
+            )
+            if hasattr(response, "prompt_feedback") and response.prompt_feedback:
+                print(
+                    f"Prompt Feedback for {filename_for_log}: {response.prompt_feedback}"
+                )
             return None
         except Exception as e:
             error_message = str(e).lower()
             is_rate_limit_error = (
-                "rate limit" in error_message or "resource has been exhausted" in error_message or
-                "429" in error_message or "quota" in error_message
+                "rate limit" in error_message
+                or "resource has been exhausted" in error_message
+                or "429" in error_message
+                or "quota" in error_message
             )
             if is_rate_limit_error:
                 retries += 1
                 if retries > max_retries:
-                    print(f"Max retries reached for rate limit on {filename_for_log}. Error: {e}")
+                    print(
+                        f"Max retries reached for rate limit on {filename_for_log}. Error: {e}"
+                    )
                     return None
                 sleep_time = current_wait_time + random.uniform(0, 2)
-                print(f"Rate limit hit for {filename_for_log}. Retrying in {sleep_time:.2f} seconds...")
+                print(
+                    f"Rate limit hit for {filename_for_log}. Retrying in {sleep_time:.2f} seconds..."
+                )
                 time.sleep(sleep_time)
-                current_wait_time = min(current_wait_time * 2, 60) # Cap wait time
+                current_wait_time = min(current_wait_time * 2, 60)  # Cap wait time
             else:
-                print(f"Error calling Gemini API for {filename_for_log} (not rate limit): {e}")
+                print(
+                    f"Error calling Gemini API for {filename_for_log} (not rate limit): {e}"
+                )
                 return None
     return None
 
-def analyze_interview_with_gemini(interview_file_path: str, api_key: str) -> dict | None:
+
+def analyze_interview_with_gemini(
+    interview_file_path: str, api_key: str
+) -> dict | None:
     filename_only = os.path.basename(interview_file_path)
     print(f"\n--- Analyzing file: {filename_only} with Gemini ---")
     try:
-        with open(interview_file_path, 'r', encoding='utf-8') as f:
+        with open(interview_file_path, "r", encoding="utf-8") as f:
             interview_text = f.read()
     except Exception as e:
         print(f"Error reading file {interview_file_path}: {e}")
@@ -416,7 +566,9 @@ def analyze_interview_with_gemini(interview_file_path: str, api_key: str) -> dic
         print(f"Error: File {filename_only} is empty.")
         return None
 
-    json_response_str = call_gemini_api_with_retry(interview_text, api_key, filename_only)
+    json_response_str = call_gemini_api_with_retry(
+        interview_text, api_key, filename_only
+    )
 
     if json_response_str:
         try:
@@ -427,8 +579,11 @@ def analyze_interview_with_gemini(interview_file_path: str, api_key: str) -> dic
             print(f"Received string (failed parse):\n---\n{json_response_str}\n---")
             return None
     else:
-        print(f"No valid JSON response from Gemini for {filename_only} after retries/errors.")
+        print(
+            f"No valid JSON response from Gemini for {filename_only} after retries/errors."
+        )
         return None
+
 
 # --- Main Script ---
 if __name__ == "__main__":
@@ -441,15 +596,17 @@ if __name__ == "__main__":
     if not os.path.isdir(INTERVIEW_DIR):
         print(f"\nDirectory '{INTERVIEW_DIR}' not found. Create it and add .txt files.")
         exit(1)
-    
+
     os.makedirs(CSV_OUTPUT_DIR, exist_ok=True)
     print(f"CSV files will be saved in: {os.path.abspath(CSV_OUTPUT_DIR)}")
 
-    print(f"\n--- Starting Batch Processing from directory: {INTERVIEW_DIR} with Gemini ---")
+    print(
+        f"\n--- Starting Batch Processing from directory: {INTERVIEW_DIR} with Gemini ---"
+    )
     processed_successfully_count = 0
     failed_extraction_count = 0
     failed_db_insert_count = 0
-    
+
     # Optional: Clear existing CSV files if you want to overwrite on each full run
     # for dirpath, dirnames, filenames in os.walk(CSV_OUTPUT_DIR):
     #     for file in filenames:
@@ -457,39 +614,54 @@ if __name__ == "__main__":
     #             os.remove(os.path.join(dirpath, file))
     # print("Cleared existing CSV files.")
 
-
     for filename in os.listdir(INTERVIEW_DIR):
         if filename.endswith(".txt"):
             file_path = os.path.join(INTERVIEW_DIR, filename)
-            interview_id_for_csv = filename # Use filename as the unique ID for linking CSV rows
-            
+            interview_id_for_csv = (
+                filename  # Use filename as the unique ID for linking CSV rows
+            )
+
             extracted_info = analyze_interview_with_gemini(file_path, google_api_key)
-            
+
             if extracted_info:
                 print(f"--- Successfully extracted data for {filename} ---")
                 try:
                     save_data_to_csvs(interview_id_for_csv, extracted_info)
                     print(f"--- Successfully saved CSV data for {filename} ---")
-                    
+
                     # Now, also store in the database
-                    store_extracted_data_v2(file_path, extracted_info) # This function now prints its own success/failure
+                    store_extracted_data_v2(
+                        file_path, extracted_info
+                    )  # This function now prints its own success/failure
                     # We assume store_extracted_data_v2 handles its own errors and doesn't raise to here
                     # unless it's a critical, unhandled exception.
                     # For counting, we'll rely on the extraction being successful.
                     # A more robust way would be for store_extracted_data_v2 to return True/False.
-                    processed_successfully_count +=1
+                    processed_successfully_count += 1
 
-                except Exception as e: # Catch errors during CSV saving or DB storing
-                    print(f"--- Error during CSV saving or DB storing for {filename}: {e} ---")
-                    failed_db_insert_count += 1 # Or a more general "processing_error_count"
+                except Exception as e:  # Catch errors during CSV saving or DB storing
+                    print(
+                        f"--- Error during CSV saving or DB storing for {filename}: {e} ---"
+                    )
+                    failed_db_insert_count += (
+                        1  # Or a more general "processing_error_count"
+                    )
             else:
                 print(f"--- Failed to extract data for {filename} ---")
                 failed_extraction_count += 1
-            
+
             # time.sleep(1) # Optional delay if still facing rate limits despite retry logic
-    
+
     print(f"\n--- Batch Processing Complete ---")
-    print(f"Successfully extracted and attempted DB insert for: {processed_successfully_count} files.")
-    print(f"Failed to extract data (API/JSON parse error): {failed_extraction_count} files.")
-    if failed_db_insert_count > 0: # Only print if there were DB insert specific failures
-        print(f"Failed during CSV save or DB insert stage (after successful extraction): {failed_db_insert_count} files.")
+    print(
+        f"Successfully extracted and attempted DB insert for: {processed_successfully_count} files."
+    )
+    print(
+        f"Failed to extract data (API/JSON parse error): {failed_extraction_count} files."
+    )
+    if (
+        failed_db_insert_count > 0
+    ):  # Only print if there were DB insert specific failures
+        print(
+            f"Failed during CSV save or DB insert stage (after successful extraction): {failed_db_insert_count} files."
+        )
